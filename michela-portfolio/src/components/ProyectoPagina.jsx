@@ -2,9 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react'
 import { EASE, videoInfo } from '../lib/util'
 import { proyectos } from '../lib/datos'
-import { SplitWords, Reveal, Boton, Magnetic } from './motion'
-import { ParallaxMedia } from './Sections'
-import { BadgeAutoria, BadgeProvisional } from './Proyectos'
+import { SplitWords, Reveal, Magnetic } from './motion'
+import { BadgeProvisional } from './Proyectos'
+import { Icono, Destello } from './Iconos'
+import { TituloSeccion } from './Sections'
 import Media from './Media'
 
 /* ---------- Visualizador de imágenes ---------- */
@@ -86,7 +87,7 @@ function Video({ url, titulo, tono, poster, formato }) {
     return <Media tono={tono} etiqueta="Video provisional" className="aspect-video rounded-[3px]" />
   }
   if (info.tipo === 'archivo') {
-    const forma = formato === 'cuadrado' ? 'mx-auto aspect-square max-w-[640px]' : formato === 'vertical' ? 'mx-auto aspect-[9/16] max-w-[380px]' : 'aspect-video'
+    const forma = formato === 'cuadrado' ? 'mx-auto aspect-square max-w-[520px]' : formato === 'vertical' ? 'mx-auto aspect-[9/16] max-w-[380px]' : 'aspect-video'
     return <video src={info.src} poster={poster} controls preload="metadata" playsInline className={`block w-full rounded-[3px] bg-crema-2 object-contain ${forma}`} title={titulo} />
   }
   return (
@@ -109,15 +110,136 @@ function Video({ url, titulo, tono, poster, formato }) {
   )
 }
 
-function Bloque({ n, titulo, children }) {
+/* ---------- Carrusel principal: recorre todas las piezas del proyecto ---------- */
+function CarruselPrincipal({ p, reales, videos, onAmpliar }) {
+  const reduce = useReducedMotion()
+  const slides = [
+    ...reales.map((img) => ({ tipo: 'imagen', ...img })),
+    ...videos.map((v) => ({ tipo: 'video', ...v })),
+  ]
+  if (slides.length === 0 && p.portada) slides.push({ tipo: 'imagen', src: p.portada, alt: p.titulo, soloPortada: true })
+  const [[i, dir], setEstado] = useState([0, 0])
+  const total = slides.length
+  const ir = (n) => setEstado(([actual]) => [((n % total) + total) % total, n > actual ? 1 : -1])
+  const mover = (d) => setEstado(([actual]) => [(actual + d + total) % total, d])
+  const s = slides[i]
+  const fondo = p.fondoPortada || '#F0E4E2'
+  // Si todas las piezas son banners horizontales, el contenedor es más apaisado
+  const proporcion = slides.length && slides.every((x) => x.formato === 'banner') ? 'aspect-[16/9]' : 'aspect-[4/3]'
+
+  const onKey = (e) => {
+    if (total < 2) return
+    if (e.key === 'ArrowRight') { e.preventDefault(); mover(1) }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); mover(-1) }
+  }
+
   return (
-    <Reveal className="grid gap-4 border-t border-tinta/15 py-10 md:grid-cols-[5rem_14rem_1fr] md:gap-8">
-      <span className="font-serif text-2xl italic text-burdeo-2">{n}</span>
-      <h2 className="text-[13px] uppercase tracking-[0.18em] text-gris md:pt-2">{titulo}</h2>
-      <div className="max-w-2xl text-lg leading-relaxed text-tinta/85 md:text-xl">{children}</div>
+    <div>
+      <div
+        className={`group/c relative ${proporcion} w-full overflow-hidden rounded-[22px] shadow-[0_26px_50px_-30px_rgba(60,20,30,0.6)]`}
+        style={{ backgroundColor: fondo }}
+        tabIndex={total > 1 ? 0 : undefined}
+        onKeyDown={onKey}
+        role="region"
+        aria-roledescription="carrusel"
+        aria-label={`Piezas del proyecto (${i + 1} de ${total})`}
+      >
+        <AnimatePresence initial={false} custom={dir} mode="popLayout">
+          <motion.div
+            key={i}
+            custom={dir}
+            className="absolute inset-0 flex items-center justify-center"
+            variants={{
+              entra: (d) => ({ opacity: 0, x: reduce ? 0 : d * 40 }),
+              centro: { opacity: 1, x: 0 },
+              sale: (d) => ({ opacity: 0, x: reduce ? 0 : d * -40 }),
+            }}
+            initial="entra"
+            animate="centro"
+            exit="sale"
+            transition={{ duration: 0.45, ease: EASE }}
+            drag={total > 1 && s.tipo === 'imagen' ? 'x' : false}
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.35}
+            onDragEnd={(_, info) => { if (info.offset.x < -50) mover(1); else if (info.offset.x > 50) mover(-1) }}
+          >
+            {s.tipo === 'imagen' ? (
+              <button
+                onClick={() => !s.soloPortada && onAmpliar(reales.indexOf(reales.find((r) => r.src === s.src)))}
+                data-cursor={s.soloPortada ? undefined : 'Ampliar'}
+                className="h-full w-full cursor-zoom-in"
+                aria-label={`Ampliar: ${s.alt || p.titulo}`}
+                disabled={s.soloPortada}
+              >
+                <img src={s.src} alt={s.alt || p.titulo} draggable="false" className="h-full w-full select-none object-contain" />
+              </button>
+            ) : (
+              <div className="flex h-full w-full items-center justify-center p-3">
+                <div className="h-full max-h-full w-full">
+                  <VideoRelleno v={s} tono={p.tono} />
+                </div>
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
+
+        {total > 1 && (
+          <>
+            <button onClick={() => mover(-1)} aria-label="Pieza anterior" className="absolute left-3 top-1/2 z-10 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-crema/90 text-burdeo shadow-sm backdrop-blur transition-all duration-300 hover:bg-burdeo hover:text-crema md:opacity-0 md:group-hover/c:opacity-100 md:focus-visible:opacity-100">←</button>
+            <button onClick={() => mover(1)} aria-label="Pieza siguiente" className="absolute right-3 top-1/2 z-10 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-crema/90 text-burdeo shadow-sm backdrop-blur transition-all duration-300 hover:bg-burdeo hover:text-crema md:opacity-0 md:group-hover/c:opacity-100 md:focus-visible:opacity-100">→</button>
+            <span className="absolute bottom-3 right-3 z-10 rounded-full bg-tinta/60 px-2.5 py-0.5 text-[12px] tabular-nums text-crema backdrop-blur">{i + 1} / {total}</span>
+          </>
+        )}
+      </div>
+
+      {total > 1 && (
+        <div className="sin-scrollbar mt-3 flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label="Miniaturas">
+          {slides.map((sl, n) => (
+            <button
+              key={n}
+              role="tab"
+              aria-selected={n === i}
+              aria-label={`Ver pieza ${n + 1}`}
+              onClick={() => ir(n)}
+              className={`relative h-14 w-14 shrink-0 overflow-hidden rounded-lg transition-all duration-300 md:h-16 md:w-16 ${n === i ? 'ring-2 ring-burdeo ring-offset-2 ring-offset-crema' : 'opacity-60 hover:opacity-100'}`}
+              style={{ backgroundColor: fondo }}
+            >
+              <img src={sl.tipo === 'imagen' ? sl.src : sl.poster || p.portada} alt="" className="h-full w-full object-contain" loading="lazy" />
+              {sl.tipo === 'video' && <span className="absolute inset-0 grid place-items-center bg-tinta/30 text-[13px] text-crema">▶</span>}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** Video que se adapta al contenedor del carrusel */
+function VideoRelleno({ v, tono }) {
+  const info = videoInfo(v.url)
+  if (info?.tipo === 'archivo') {
+    return <video src={info.src} poster={v.poster} controls preload="metadata" playsInline className="h-full w-full rounded-xl object-contain" title={v.titulo} />
+  }
+  return (
+    <div className="flex h-full items-center">
+      <div className="w-full"><Video url={v.url} titulo={v.titulo} tono={tono} /></div>
+    </div>
+  )
+}
+
+function Bloque({ titulo, children, className = '' }) {
+  return (
+    <Reveal className={className}>
+      <div className="flex items-center gap-3">
+        <h2 className="font-serif text-[1.35rem] leading-tight">{titulo}</h2>
+        <span className="h-px w-8 bg-burdeo" aria-hidden="true" />
+      </div>
+      <div className="mt-2.5 text-[15px] leading-relaxed text-tinta/85">{children}</div>
     </Reveal>
   )
 }
+
+const ICONOS_ENTREGABLES = ['grafico', 'correo', 'documento', 'imagen', 'video', 'capas']
 
 export default function ProyectoPagina({ slug, onOpen, onVolver }) {
   const reduce = useReducedMotion()
@@ -127,152 +249,175 @@ export default function ProyectoPagina({ slug, onOpen, onVolver }) {
   const ant = proyectos[(idx - 1 + proyectos.length) % proyectos.length]
   const [lb, setLb] = useState(null)
   const reales = p.imagenes.filter((i) => i.src)
-  const videos = p.videos || []
+  const videos = (p.videos || []).filter((v) => v.url)
+  const propio = p.autoria === 'propio'
 
   useEffect(() => { document.title = `${p.titulo} · Michela Angelini` }, [p.titulo])
 
-  const secciones = [
-    ['Contexto y desafío', p.contexto],
-    ['Objetivo', p.objetivo],
-    ['Mi participación', p.participacion],
-    ['Proceso', p.proceso],
-  ].filter(([, t]) => t)
+  const meta = [
+    { icono: 'usuario', k: 'Cliente', v: p.cliente },
+    { icono: 'calendario', k: 'Año', v: p.anio || '—' },
+    { icono: 'etiqueta', k: 'Categoría', v: p.categorias.join(', ') },
+  ]
 
   return (
-    <main className="pt-28 md:pt-36">
-      <div className="mx-auto w-full max-w-[1600px] px-5 md:px-10">
-        {/* Encabezado */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6, duration: 0.8 }} className="flex flex-wrap items-center gap-2">
-          <BadgeAutoria autoria={p.autoria} />
-          {p.provisional && <BadgeProvisional />}
-        </motion.div>
-        <h1 className="mt-8 max-w-6xl text-[clamp(2.6rem,7.5vw,7.6rem)] font-semibold leading-[0.92] tracking-[-0.05em]">
-          <SplitWords text={p.titulo} animateOnMount delay={0.45} stagger={0.06} />
-        </h1>
+    <main className="pt-20 md:pt-24">
+      <div className="mx-auto w-full max-w-[1280px] px-5 md:px-10">
+        {/* Migas */}
+        <motion.nav initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} aria-label="Ruta" className="text-[14px]">
+          <button onClick={onVolver} className="font-serif italic text-burdeo hover:underline">Proyectos</button>
+          <span className="mx-2.5 text-gris" aria-hidden="true">›</span>
+          <span className="text-tinta/80">{p.titulo}</span>
+        </motion.nav>
 
-        <motion.dl
-          initial={{ opacity: 0, y: reduce ? 0 : 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.9, duration: 1, ease: EASE }}
-          className="mt-12 grid grid-cols-2 gap-6 border-t border-tinta/15 pt-6 md:grid-cols-4"
-        >
-          {[
-            ['Cliente', p.cliente],
-            ['Realizado en', p.empresa],
-            ['Año', p.anio || '—'],
-            ['Categoría', p.categorias.join(', ')],
-          ].map(([k, v]) => (
-            <div key={k}>
-              <dt className="text-[12px] uppercase tracking-[0.18em] text-gris">{k}</dt>
-              <dd className="mt-1 text-lg tracking-tight">{v}</dd>
+        {/* Encabezado: carrusel a la izquierda, información a la derecha */}
+        <div className="mt-5 grid items-start gap-8 lg:grid-cols-12 lg:gap-10">
+          <motion.div
+            className="relative min-w-0 lg:col-span-6"
+            initial={{ opacity: 0, y: reduce ? 0 : 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.55, duration: 1, ease: EASE }}
+          >
+            <div aria-hidden="true" className="absolute -top-3 left-[40%] h-1/4 w-1/3 rotate-3 rounded-[20px] bg-burdeo" />
+            <div aria-hidden="true" className="absolute -left-3 bottom-16 hidden h-1/4 w-1/5 rounded-[18px] bg-burdeo-2/80 sm:block" />
+            <Destello className="absolute -top-7 left-[76%] h-7 w-7 text-burdeo" />
+            <div className="relative">
+              <CarruselPrincipal p={p} reales={reales} videos={videos} onAmpliar={(n) => setLb(n)} />
             </div>
-          ))}
-        </motion.dl>
-      </div>
+          </motion.div>
 
-      {/* Portada */}
-      <motion.div
-        initial={{ opacity: 0, y: reduce ? 0 : 60 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1, duration: 1.2, ease: EASE }}
-        className="mx-auto mt-14 w-full max-w-[1600px] px-5 md:px-10"
-      >
-        <ParallaxMedia src={p.portada} alt={p.titulo} tono={p.tono} ajuste={p.ajustePortada} fondo={p.fondoPortada} className="aspect-[16/10] w-full rounded-[3px] md:aspect-[16/8]" priority />
-      </motion.div>
+          <div className="min-w-0 lg:col-span-6 lg:pt-1">
+            {p.provisional && <div className="mb-3"><BadgeProvisional /></div>}
+            <h1 className="font-serif text-[clamp(1.6rem,2.5vw,2.2rem)] leading-[1.15]">
+              <SplitWords text={p.titulo} animateOnMount delay={0.45} stagger={0.04} />
+            </h1>
+            <motion.div initial={{ opacity: 0, y: reduce ? 0 : 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8, duration: 0.9, ease: EASE }}>
+              {p.bajada && <p className="mt-2 font-serif text-[17px] italic text-burdeo">{p.bajada}</p>}
+              <div className="mt-3 h-px w-10 bg-burdeo" />
+              <p className="mt-3 text-[15px] leading-relaxed text-tinta/85">{p.resumen}</p>
 
-      <div className="mx-auto w-full max-w-[1600px] px-5 md:px-10">
-        {/* Autoría y rol */}
-        <Reveal className="mt-20 grid gap-8 md:grid-cols-12">
-          <div className="md:col-span-7">
-            <p className="text-[13px] uppercase tracking-[0.18em] text-gris">Autoría</p>
-            <p className="mt-3 text-2xl leading-snug tracking-tight md:text-3xl">{p.detalleAutoria}</p>
-            {p.creditos && <p className="mt-3 font-serif text-xl italic text-burdeo">{p.creditos}</p>}
-            {p.nota && <p className="mt-4 max-w-xl border-l border-burdeo/40 pl-3 text-[13px] leading-relaxed text-gris">{p.nota}</p>}
+              <dl className="mt-5 grid grid-cols-1 gap-y-2.5 border-y border-burdeo/10 py-3 sm:grid-cols-3 sm:gap-x-3">
+                {meta.map((m, n) => (
+                  <div key={m.k} className={`flex items-start gap-2 ${n > 0 ? 'sm:border-l sm:border-burdeo/10 sm:pl-3' : ''}`}>
+                    <Icono nombre={m.icono} className="mt-0.5 shrink-0 text-burdeo" size={16} />
+                    <div>
+                      <dt className="text-[11px] uppercase tracking-[0.12em] text-gris">{m.k}</dt>
+                      <dd className="text-[13.5px] leading-snug">{m.v}</dd>
+                    </div>
+                  </div>
+                ))}
+              </dl>
+
+              <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                <span className="mr-1 text-[11px] uppercase tracking-[0.12em] text-gris">Mi rol</span>
+                {p.rol.map((r) => <span key={r} className="rounded-full border border-burdeo/25 px-2.5 py-0.5 text-[12px]">{r}</span>)}
+              </div>
+
+              <div className="mt-4 flex items-center gap-3 rounded-xl bg-rosa px-4 py-3">
+                <Icono nombre={propio ? 'lapiz' : 'megafono'} className="shrink-0 text-burdeo" size={22} />
+                <span className="h-8 w-px bg-burdeo/25" aria-hidden="true" />
+                <div>
+                  <p className="font-serif text-[16px] italic text-burdeo">{propio ? 'Diseño propio' : 'Dirección y coordinación'}</p>
+                  <p className="text-[13.5px] leading-snug text-tinta/85">{p.detalleAutoria}</p>
+                  {p.creditos && <p className="text-[12.5px] italic text-gris">{p.creditos}</p>}
+                </div>
+              </div>
+              {p.nota && <p className="mt-3 text-[11.5px] italic text-gris">{p.nota}</p>}
+            </motion.div>
           </div>
-          <div className="md:col-span-4 md:col-start-9">
-            <p className="text-[13px] uppercase tracking-[0.18em] text-gris">Mi rol</p>
-            <ul className="mt-3 flex flex-wrap gap-2">
-              {p.rol.map((r) => <li key={r} className="rounded-full border border-tinta/20 px-4 py-1.5 text-[15px]">{r}</li>)}
-            </ul>
-          </div>
-        </Reveal>
+        </div>
 
         {/* Caso */}
-        <div className="mt-20">
-          {secciones.map(([t, txt], i) => <Bloque key={t} n={String(i + 1).padStart(2, '0')} titulo={t}>{txt}</Bloque>)}
-          {p.resultados?.length > 0 && (
-            <Bloque n={String(secciones.length + 1).padStart(2, '0')} titulo="Resultados y entregables">
-              <ul className="space-y-3">
-                {p.resultados.map((r) => (
-                  <li key={r} className="flex gap-3"><span className="mt-[14px] h-px w-4 shrink-0 bg-burdeo" aria-hidden="true" />{r}</li>
+        <div className="mt-12 grid gap-y-8 md:grid-cols-2 md:gap-x-0">
+          {p.contexto && <Bloque titulo="Contexto" className="md:border-r md:border-burdeo/15 md:pr-10">{p.contexto}</Bloque>}
+          {p.objetivo && <Bloque titulo="Objetivo" className="md:pl-10">{p.objetivo}</Bloque>}
+        </div>
+        <div className="mt-8 grid gap-y-8 border-t border-burdeo/15 pt-8 md:grid-cols-2">
+          {p.participacion && <Bloque titulo="Mi participación" className="md:border-r md:border-burdeo/15 md:pr-10">{p.participacion}</Bloque>}
+          {p.proceso && (
+            <Bloque titulo="Proceso" className="md:pl-10">
+              <ol className="space-y-2">
+                {p.proceso.split('→').map((paso, i) => (
+                  <li key={i} className="flex gap-3">
+                    <span className="font-serif italic text-burdeo">{String(i + 1).padStart(2, '0')}</span>
+                    <span>{paso.trim().charAt(0).toUpperCase() + paso.trim().slice(1)}</span>
+                  </li>
                 ))}
-              </ul>
+              </ol>
             </Bloque>
           )}
         </div>
 
-        {/* Galería */}
-        {p.imagenes.length > 0 && (
-          <section className="mt-24" aria-label="Galería">
-            <Reveal className="flex items-baseline justify-between border-t border-tinta/15 pt-6">
-              <h2 className="text-[13px] uppercase tracking-[0.18em] text-gris">Galería</h2>
-              {reales.length > 0 && <p className="text-[13px] text-gris">Haz clic para ampliar</p>}
-            </Reveal>
-            {p.nota && <p className="mt-2 text-[13px] text-gris">{p.nota}</p>}
-            <div className="mt-8 grid grid-cols-2 items-start gap-4 md:grid-cols-12 md:gap-6">
-              {p.imagenes.map((img, i) => {
-                const span = img.formato === 'banner'
-                  ? 'col-span-2 md:col-span-12 aspect-[39/10]'
-                  : img.formato === 'cuadrado'
-                  ? 'col-span-2 sm:col-span-1 md:col-span-6 aspect-square'
-                  : i % 3 === 0 ? 'col-span-2 md:col-span-12 aspect-[16/9]' : 'col-span-1 md:col-span-6 aspect-[4/5]'
-                const realIdx = reales.indexOf(img)
-                return (
-                  <Reveal key={i} delay={(i % 2) * 0.08} className={span}>
-                    {img.src ? (
-                      <button onClick={() => setLb(realIdx)} data-cursor="Ampliar" className="group block h-full w-full overflow-hidden rounded-[3px]" aria-label={`Ampliar imagen: ${img.alt || p.titulo}`}>
-                        <Media src={img.src} alt={img.alt} ajuste={img.ajuste || 'contain'} fondo={img.fondo || p.fondoPortada} tono="#E9E2D7" className="h-full w-full" imgClassName="transition-transform duration-[1200ms] ease-[var(--ease-editorial)] group-hover:scale-105" />
-                      </button>
-                    ) : (
-                      <Media tono={p.tono} className="h-full w-full rounded-[3px]" />
-                    )}
-                    {img.pie && <p className="mt-2 text-sm text-gris">{img.pie}</p>}
-                  </Reveal>
-                )
-              })}
-            </div>
+        {/* Galería + entregables */}
+        <div className="mt-10 grid gap-8 border-t border-burdeo/15 pt-8 lg:grid-cols-12">
+          <section className={reales.length === 0 ? 'hidden' : p.resultados?.length ? 'lg:col-span-8' : 'lg:col-span-12'} aria-label="Galería">
+            {reales.length > 0 && (
+              <>
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <div className="flex items-center gap-4">
+                    <h2 className="font-serif text-[1.35rem]">Galería</h2>
+                    <span className="h-px w-10 bg-burdeo" aria-hidden="true" />
+                  </div>
+                  <p className="text-[13px] italic text-gris">Haz clic para ampliar</p>
+                </div>
+                <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3">
+                  {p.imagenes.map((img, i) => {
+                    if (!img.src) return null
+                    const banner = img.formato === 'banner'
+                    return (
+                      <Reveal key={i} delay={(i % 3) * 0.06} className={banner ? 'col-span-2 md:col-span-3' : ''}>
+                        <button onClick={() => setLb(reales.indexOf(img))} data-cursor="Ampliar" className="group block w-full overflow-hidden rounded-xl" aria-label={`Ampliar imagen: ${img.alt || p.titulo}`}>
+                          <Media src={img.src} alt={img.alt} ajuste="contain" fondo={p.fondoPortada || '#F0E4E2'} tono="#F0E4E2" className={banner ? 'aspect-[39/10] w-full' : 'aspect-square w-full'} imgClassName="transition-transform duration-[1200ms] ease-[var(--ease-editorial)] group-hover:scale-105" />
+                        </button>
+                        {img.pie && <p className="mt-1.5 text-[13px] leading-snug text-gris">{img.pie}</p>}
+                      </Reveal>
+                    )
+                  })}
+                </div>
+              </>
+            )}
           </section>
-        )}
 
-        {/* Videos */}
-        {videos.length > 0 && (
-          <section className="mt-24" aria-label="Videos">
-            <Reveal className="border-t border-tinta/15 pt-6"><h2 className="text-[13px] uppercase tracking-[0.18em] text-gris">Video</h2></Reveal>
-            <div className="mt-8 grid gap-8">
-              {videos.map((v, i) => (
-                <Reveal key={i}>
-                  <Video url={v.url} titulo={v.titulo} tono={p.tono} poster={v.poster} formato={v.formato} />
-                  {v.titulo && v.url && <p className={`mt-3 text-sm text-gris ${v.formato ? 'text-center' : ''}`}>{v.titulo}</p>}
-                </Reveal>
-              ))}
-            </div>
-          </section>
-        )}
+          {p.resultados?.length > 0 && (
+            <Reveal className={reales.length === 0 ? 'lg:col-span-12' : 'lg:col-span-4'}>
+              <div className="rounded-[22px] bg-burdeo p-6 text-crema md:p-7 lg:sticky lg:top-28">
+                <div className="flex items-center gap-4">
+                  <h2 className="font-serif text-[1.35rem]">Entregables</h2>
+                  <span className="h-px w-10 bg-crema/50" aria-hidden="true" />
+                </div>
+                <ul className={`mt-4 grid gap-4 ${reales.length === 0 ? 'md:grid-cols-2' : ''}`}>
+                  {p.resultados.map((r, i) => (
+                    <li key={r} className="flex gap-3.5">
+                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-crema text-burdeo">
+                        <Icono nombre={ICONOS_ENTREGABLES[i % ICONOS_ENTREGABLES.length]} size={19} />
+                      </span>
+                      <span className="text-[14px] leading-snug text-crema/95">{r}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </Reveal>
+          )}
+        </div>
 
         {/* Navegación entre proyectos */}
-        <nav className="mt-32 border-t border-tinta/15 pt-8" aria-label="Más proyectos">
-          <div className="grid gap-10 md:grid-cols-2">
+        <nav className="mt-20 border-t border-burdeo/15 pt-8" aria-label="Más proyectos">
+          <div className="grid gap-8 md:grid-cols-2">
             <a href={`#proyecto-${ant.slug}`} onClick={(e) => { e.preventDefault(); onOpen(ant.slug) }} className="group block" data-cursor="Anterior">
               <p className="text-[13px] uppercase tracking-[0.18em] text-gris">← Anterior</p>
-              <p className="mt-3 text-2xl font-medium leading-tight tracking-tight transition-colors duration-500 group-hover:text-burdeo md:text-4xl">{ant.titulo}</p>
+              <p className="mt-2 font-serif text-xl leading-tight transition-colors duration-500 group-hover:text-burdeo md:text-2xl">{ant.titulo}</p>
             </a>
             <a href={`#proyecto-${sig.slug}`} onClick={(e) => { e.preventDefault(); onOpen(sig.slug) }} className="group block md:text-right" data-cursor="Siguiente">
               <p className="text-[13px] uppercase tracking-[0.18em] text-gris">Siguiente →</p>
-              <p className="mt-3 text-2xl font-medium leading-tight tracking-tight transition-colors duration-500 group-hover:text-burdeo md:text-4xl">{sig.titulo}</p>
+              <p className="mt-2 font-serif text-xl leading-tight transition-colors duration-500 group-hover:text-burdeo md:text-2xl">{sig.titulo}</p>
             </a>
           </div>
-          <div className="mt-16 flex justify-center pb-24">
-            <Magnetic><Boton onClick={onVolver} icono="↑">Volver a todos los proyectos</Boton></Magnetic>
+          <div className="mt-12 flex justify-center pb-8">
+            <Magnetic>
+              <button onClick={onVolver} className="group inline-flex items-center gap-3 rounded-lg border border-burdeo/70 px-7 py-3.5 font-serif text-[17px] transition-colors duration-500 hover:bg-burdeo hover:text-crema">
+                <span aria-hidden="true" className="transition-transform duration-500 group-hover:-translate-x-1">←</span> Volver a todos los proyectos
+              </button>
+            </Magnetic>
           </div>
         </nav>
       </div>

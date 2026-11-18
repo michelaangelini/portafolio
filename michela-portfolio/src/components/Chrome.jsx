@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { motion, AnimatePresence, useScroll, useSpring, useMotionValue, useReducedMotion, useMotionValueEvent } from 'motion/react'
 import { EASE, useFinePointer } from '../lib/util'
 import { sitio } from '../data/sitio'
+import { Monograma } from './Iconos'
+import { casos } from '../lib/datos'
 
 /* ---------- Barra de progreso de lectura ---------- */
 export function ScrollProgress() {
@@ -72,29 +74,32 @@ const LINKS = [
   { id: 'inicio', label: 'Inicio' },
   { id: 'sobre-mi', label: 'Sobre mí' },
   { id: 'proyectos', label: 'Proyectos' },
+  ...(casos.length ? [{ id: 'casos', label: 'Casos de estudio' }] : []),
   { id: 'contacto', label: 'Contacto' },
 ]
 
-export function Nav({ onNavigate, enProyecto, onVolver }) {
+export function Nav({ onNavigate, vista }) {
   const [abierto, setAbierto] = useState(false)
   const [oculto, setOculto] = useState(false)
+  const [conFondo, setConFondo] = useState(false)
   const [activo, setActivo] = useState('inicio')
   const { scrollY } = useScroll()
 
   useMotionValueEvent(scrollY, 'change', (v) => {
     const prev = scrollY.getPrevious() ?? 0
     setOculto(v > prev && v > 240 && !abierto)
+    setConFondo(v > 20)
   })
 
   useEffect(() => {
-    if (enProyecto) return
+    if (vista !== 'inicio') { setActivo(vista === 'todos' || vista === 'proyecto' ? 'proyectos' : vista === 'casos' || vista === 'caso' ? 'casos' : 'inicio'); return }
     const io = new IntersectionObserver(
-      (entries) => entries.forEach((e) => e.isIntersecting && setActivo(e.target.id)),
+      (entries) => entries.forEach((e) => e.isIntersecting && setActivo(e.target.id === 'trabajos' ? 'inicio' : e.target.id)),
       { rootMargin: '-45% 0px -50% 0px' },
     )
-    LINKS.forEach(({ id }) => { const el = document.getElementById(id); el && io.observe(el) })
+    ;['inicio', 'trabajos', 'sobre-mi', 'contacto'].forEach((id) => { const el = document.getElementById(id); el && io.observe(el) })
     return () => io.disconnect()
-  }, [enProyecto])
+  }, [vista])
 
   useEffect(() => {
     document.body.style.overflow = abierto ? 'hidden' : ''
@@ -108,32 +113,35 @@ export function Nav({ onNavigate, enProyecto, onVolver }) {
   return (
     <>
       <motion.header
-        className={`fixed inset-x-0 top-0 z-50 ${abierto ? 'text-crema' : 'text-white mix-blend-difference'}`}
+        className={`fixed inset-x-0 top-0 z-50 transition-[background-color,box-shadow] duration-500 ${abierto ? 'text-crema' : 'text-tinta'} ${conFondo && !abierto ? 'bg-crema/85 shadow-[0_1px_0_rgba(122,22,49,0.08)] backdrop-blur-md' : ''}`}
         animate={{ y: oculto ? '-110%' : '0%' }}
         transition={{ duration: 0.5, ease: EASE }}
       >
-        <nav className="mx-auto flex max-w-[1600px] items-center justify-between px-5 py-5 md:px-10 md:py-7" aria-label="Principal">
-          <a href="#inicio" onClick={ir('inicio')} className="text-[15px] font-semibold tracking-tight" aria-label={`${sitio.nombre} — inicio`}>
-            {sitio.nombre}
-            <span className="font-serif text-lg font-normal italic">&nbsp;©</span>
+        <nav className="mx-auto flex max-w-[1280px] items-center justify-between px-5 py-3.5 md:px-10 md:py-4" aria-label="Principal">
+          <a href="#inicio" onClick={ir('inicio')} className="flex items-center gap-4" aria-label={`${sitio.nombre} — inicio`}>
+            <Monograma className={`h-11 w-auto ${abierto ? 'text-crema' : 'text-tinta'}`} />
+            <span className={`hidden h-8 w-px lg:block ${abierto ? 'bg-crema/40' : 'bg-burdeo/50'}`} aria-hidden="true" />
+            <span className="hidden font-serif text-[19px] lg:block">{sitio.nombre}</span>
           </a>
 
-          {enProyecto ? (
-            <button onClick={onVolver} className="subrayado text-[15px]">← Volver a proyectos</button>
-          ) : (
-            <ul className="hidden items-center gap-9 text-[15px] md:flex">
-              {LINKS.map((l) => (
-                <li key={l.id}>
-                  <a href={`#${l.id}`} onClick={ir(l.id)} className={`subrayado ${activo === l.id ? 'subrayado-on' : ''}`} aria-current={activo === l.id ? 'true' : undefined}>
-                    {l.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          )}
+          <ul className="hidden items-center gap-6 font-serif text-[16px] md:flex lg:gap-9 lg:text-[17px]">
+            {LINKS.map((l) => (
+              <li key={l.id}>
+                <a
+                  href={`#${l.id}`}
+                  onClick={ir(l.id)}
+                  className={`relative pb-1.5 transition-colors duration-300 hover:text-burdeo ${activo === l.id ? 'text-burdeo' : ''}`}
+                  aria-current={activo === l.id ? 'page' : undefined}
+                >
+                  {l.label}
+                  <span className={`absolute inset-x-0 -bottom-0.5 h-[1.5px] origin-left bg-burdeo transition-transform duration-500 ease-[var(--ease-editorial)] ${activo === l.id ? 'scale-x-100' : 'scale-x-0'}`} />
+                </a>
+              </li>
+            ))}
+          </ul>
 
           <button
-            className={`relative h-10 w-10 md:hidden ${enProyecto ? 'hidden' : ''}`}
+            className="relative h-10 w-10 md:hidden"
             onClick={() => setAbierto((v) => !v)}
             aria-expanded={abierto}
             aria-controls="menu-movil"
@@ -161,7 +169,7 @@ export function Nav({ onNavigate, enProyecto, onVolver }) {
                   <motion.a
                     href={`#${l.id}`}
                     onClick={ir(l.id)}
-                    className="block text-[15vw] font-semibold leading-[1.05] tracking-tight"
+                    className="block font-serif text-[13vw] leading-[1.1]"
                     initial={{ y: '100%' }}
                     animate={{ y: 0 }}
                     exit={{ y: '100%' }}

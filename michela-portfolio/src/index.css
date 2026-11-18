@@ -1,16 +1,17 @@
 @import "tailwindcss";
 
 @theme {
-  --color-crema: #F3EEE6;
-  --color-crema-2: #E9E2D7;
-  --color-tinta: #171311;
-  --color-gris: #6F675F;
-  --color-gris-2: #9C948A;
-  --color-linea: #D8CFC2;
+  --color-crema: #F8F1EF;
+  --color-crema-2: #F0E4E2;
+  --color-rosa: #F2E2E1;
+  --color-tinta: #1D1517;
+  --color-gris: #6E6164;
+  --color-gris-2: #9A8D8F;
+  --color-linea: #E3D3D1;
   --color-burdeo: #7A1631;
-  --color-burdeo-2: #A3224C;
-  --font-sans: "Bricolage Grotesque Variable", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Instrument Serif", ui-serif, Georgia, serif;
+  --color-burdeo-2: #9E2347;
+  --font-sans: "Source Serif 4 Variable", ui-serif, Georgia, serif;
+  --font-serif: "Playfair Display Variable", ui-serif, Georgia, serif;
   --ease-editorial: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -30,13 +31,15 @@
 .grano::after {
   content: "";
   position: fixed; inset: 0; pointer-events: none; z-index: 60;
-  opacity: .05; mix-blend-mode: multiply;
+  opacity: .035; mix-blend-mode: multiply;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 /* Acento editorial: *palabra* en los textos */
 .acento { font-family: var(--font-serif); font-style: italic; font-weight: 400; color: var(--color-burdeo); letter-spacing: 0; }
 .bg-tinta .acento { color: #E5899F; }
+h1, h2, h3 { font-family: var(--font-serif); font-weight: 500; }
+.tarjeta-suave { background: rgba(255,255,255,.55); border: 1px solid rgba(122,22,49,.10); box-shadow: 0 14px 40px -28px rgba(60,20,30,.5); }
 
 /* Subrayado animado */
 .subrayado {

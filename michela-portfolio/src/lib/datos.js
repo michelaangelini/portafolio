@@ -6,3 +6,6 @@ export const proyectos = sitio.soloProyectosListos ? todos.filter((p) => !p.prov
 
 // Solo las categorías que tienen al menos un proyecto visible
 export const CATEGORIAS = TODAS.filter((c) => proyectos.some((p) => p.categorias.includes(c)))
+
+import { casos as todosCasos } from '../data/casos'
+export const casos = sitio.mostrarCasosProvisionales ? todosCasos : todosCasos.filter((c) => !c.provisional)

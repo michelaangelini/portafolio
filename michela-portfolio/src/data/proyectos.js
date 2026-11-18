@@ -10,6 +10,7 @@
                     Cámbialo a false cuando el proyecto tenga contenido real.
    · titulo, cliente, empresa (dónde lo hiciste), anio ('2024' o '').
    · categorias:    una o más de la lista CATEGORIAS (escritas igual).
+   · bajada:        frase corta en cursiva bajo el título (opcional).
    · resumen:       una línea para la tarjeta.
    · autoria:       'propio'       → piezas diseñadas/producidas por ti.
                     'colaboracion' → participaste con concepto, brief,
@@ -54,6 +55,7 @@ export const proyectos = [
     slug: 'asistente-virtual-whatsapp',
     provisional: false,
     titulo: 'Masificación de canales digitales B2B por WhatsApp',
+    bajada: 'Diseño de piezas para campañas de WhatsApp', // frase corta bajo el título
     cliente: 'Movistar Empresas',
     empresa: 'Movistar Empresas',
     anio: '2026', // ← confirma el año
@@ -90,6 +92,7 @@ export const proyectos = [
     slug: 'video-tutorial-sucursal-virtual',
     provisional: false,
     titulo: 'Video tutorial: cómo ingresar a la Sucursal Virtual Empresas',
+    bajada: 'Del formato estático al tutorial en video', // frase corta bajo el título
     cliente: 'Movistar Empresas',
     empresa: 'Movistar Empresas',
     anio: '2026', // ← confirma el año
@@ -113,6 +116,8 @@ export const proyectos = [
       'Nuevo formato audiovisual dentro de las campañas de masificación, más allá de las piezas estáticas.',
     ],
     portada: 'proyectos/video-tutorial-sve-poster.webp',
+    ajustePortada: 'contain',
+    fondoPortada: '#DCEDFB',
     imagenes: [],
     videos: [
       { url: 'proyectos/video-tutorial-sve.mp4', titulo: 'Tutorial: ingreso a la Sucursal Virtual Empresas', poster: 'proyectos/video-tutorial-sve-poster.webp', formato: 'cuadrado' },
@@ -123,6 +128,7 @@ export const proyectos = [
     slug: 'banners-sitio-web',
     provisional: false,
     titulo: 'Banners para la Sucursal Virtual Empresas',
+    bajada: 'Diseño de banners para el sitio privado de clientes', // frase corta bajo el título
     cliente: 'Movistar Empresas',
     empresa: 'Movistar Empresas',
     anio: '2026', // ← confirma el año
@@ -159,7 +165,8 @@ export const proyectos = [
   {
     slug: 'campanas-whatsapp-agencia',
     provisional: false,
-    titulo: 'Campañas de WhatsApp: idea, dirección y coordinación con agencia',
+    titulo: 'Campañas de WhatsApp con agencia',
+    bajada: 'Idea, dirección visual y coordinación con agencia', // frase corta bajo el título
     cliente: 'Movistar Empresas',
     empresa: 'Movistar Empresas',
     anio: '2026', // ← confirma el año (o pon un rango, ej: '2025 — 2026')

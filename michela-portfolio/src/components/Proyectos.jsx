@@ -1,10 +1,11 @@
-import { useState } from 'react'
-import { motion, AnimatePresence, LayoutGroup } from 'motion/react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { motion, AnimatePresence } from 'motion/react'
 import { EASE } from '../lib/util'
 import { proyectos, CATEGORIAS } from '../lib/datos'
 import { sitio } from '../data/sitio'
-import { Etiqueta, SplitWords, Reveal } from './motion'
+import { Reveal } from './motion'
 import Media from './Media'
+import { Icono, Destello } from './Iconos'
 
 export function BadgeAutoria({ autoria, claro = false }) {
   const propio = autoria === 'propio'
@@ -21,127 +22,284 @@ export function BadgeProvisional() {
   return <span className="rounded-full bg-tinta px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.14em] text-crema">Contenido provisional</span>
 }
 
-// Composición editorial asimétrica
-const LAYOUT = [
-  { col: 'md:col-span-7', ratio: 'aspect-[4/3]' },
-  { col: 'md:col-span-5 md:mt-24', ratio: 'aspect-[4/5]' },
-  { col: 'md:col-span-5', ratio: 'aspect-[4/5]' },
-  { col: 'md:col-span-7 md:mt-24', ratio: 'aspect-[4/3]' },
-]
+const DIRECCION = 'Dirección y coordinación'
 
-/** Tarjeta (animación protagonista nº 2: reacciona al cursor) */
-function Tarjeta({ p, i, onOpen }) {
-  const l = LAYOUT[i % LAYOUT.length]
+/** Filtra por categoría o por tipo de autoría */
+export function filtrar(lista, filtro) {
+  if (!filtro || filtro === 'Todos') return lista
+  if (filtro === DIRECCION) return lista.filter((p) => p.autoria === 'colaboracion')
+  return lista.filter((p) => p.categorias.includes(filtro))
+}
+
+/** Tarjeta del carrusel (animación protagonista nº 2: reacciona al cursor) */
+function Tarjeta({ p, onOpen, pie = false }) {
+  const propio = p.autoria === 'propio'
+  const tieneVideo = p.videos?.some((v) => v.url)
   return (
-    <motion.article
-      layout
-      initial={{ opacity: 0, y: 50 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.35 } }}
-      transition={{ duration: 0.9, ease: EASE, layout: { duration: 0.8, ease: EASE } }}
-      className={`col-span-12 ${l.col}`}
+    <a
+      href={`#proyecto-${p.slug}`}
+      onClick={(e) => { e.preventDefault(); onOpen(p.slug) }}
+      data-cursor="Ver"
+      className="group flex h-full flex-col overflow-hidden rounded-2xl bg-white/70 shadow-[0_14px_40px_-26px_rgba(60,20,30,0.55)] ring-1 ring-tinta/5 transition-shadow duration-500 hover:shadow-[0_24px_50px_-24px_rgba(60,20,30,0.55)]"
     >
-      <a href={`#proyecto-${p.slug}`} onClick={(e) => { e.preventDefault(); onOpen(p.slug) }} data-cursor="Ver" className="group block">
-        <div className="relative overflow-hidden rounded-[3px] bg-crema-2">
-          <Media
-            src={p.portada}
-            alt={p.titulo}
-            tono={p.tono}
-            ajuste={p.ajustePortada}
-            fondo={p.fondoPortada}
-            className={l.ratio}
-            imgClassName="transition-transform duration-[1400ms] ease-[var(--ease-editorial)] group-hover:scale-[1.07]"
-          />
-          {/* Overlay con información */}
-          <div className="pointer-events-none absolute inset-0 hidden bg-gradient-to-t from-tinta/85 via-tinta/20 to-transparent opacity-0 transition-opacity duration-700 group-hover:opacity-100 md:block" />
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 hidden translate-y-6 p-7 text-crema opacity-0 transition-all duration-700 ease-[var(--ease-editorial)] group-hover:translate-y-0 group-hover:opacity-100 md:block">
-            <p className="text-[12px] uppercase tracking-[0.18em] text-crema/70">
-              {p.cliente}{p.anio && ` · ${p.anio}`}
-            </p>
-            <p className="mt-2 max-w-md text-lg leading-snug">{p.resumen}</p>
-            <p className="mt-3 text-[13px] text-crema/70">{p.categorias.join(' · ')}</p>
-          </div>
-          {p.videos?.some((v) => v.url) && (
-            <span className="absolute bottom-4 right-4 inline-flex items-center gap-2 rounded-full bg-tinta/85 px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.14em] text-crema backdrop-blur">
-              <span aria-hidden="true">▶</span> Video
-            </span>
-          )}
-          <div className="absolute inset-x-4 top-4 flex flex-wrap items-start justify-between gap-2">
-            <BadgeAutoria autoria={p.autoria} claro />
-            {p.provisional && <BadgeProvisional />}
-          </div>
+      <div className="relative overflow-hidden">
+        <Media
+          src={p.portada}
+          alt={p.titulo}
+          tono={p.tono}
+          ajuste={p.ajustePortada}
+          fondo={p.fondoPortada}
+          className="aspect-[16/10]"
+          imgClassName="transition-transform duration-[1200ms] ease-[var(--ease-editorial)] group-hover:scale-[1.06]"
+        />
+        <div className="pointer-events-none absolute inset-0 hidden bg-gradient-to-t from-tinta/80 via-tinta/20 to-transparent opacity-0 transition-opacity duration-700 group-hover:opacity-100 md:block" />
+        <p className="pointer-events-none absolute inset-x-0 bottom-0 hidden translate-y-4 p-5 text-[15px] leading-snug text-crema opacity-0 transition-all duration-700 ease-[var(--ease-editorial)] group-hover:translate-y-0 group-hover:opacity-100 md:block">
+          {p.resumen}
+        </p>
+        {tieneVideo && (
+          <span className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-tinta/80 px-2.5 py-1 text-[11px] uppercase tracking-[0.12em] text-crema backdrop-blur">
+            ▶ Video
+          </span>
+        )}
+        {p.provisional && <div className="absolute left-3 top-3"><BadgeProvisional /></div>}
+      </div>
+      <div className="flex flex-1 items-start justify-between gap-4 px-5 pb-5 pt-4">
+        <div>
+          <h3 className="font-serif text-[1.25rem] leading-snug transition-colors duration-500 group-hover:text-burdeo">{p.titulo}</h3>
+          <p className="mt-1.5 text-[14px] text-gris">{p.rol.slice(0, 3).join(' · ')}</p>
+          <p className="mt-2 inline-flex items-center gap-1.5 text-[13px] italic text-burdeo">
+            <span className={`h-1.5 w-1.5 rounded-full ${propio ? 'bg-burdeo' : 'border border-burdeo'}`} aria-hidden="true" />
+            {propio ? 'Diseño propio' : 'Dirección y coordinación'}
+          </p>
         </div>
-        <div className="mt-5 flex items-start justify-between gap-6">
-          <div>
-            <h3 className="text-2xl font-medium leading-tight tracking-tight transition-colors duration-500 group-hover:text-burdeo md:text-[1.75rem]">{p.titulo}</h3>
-            <p className="mt-1 text-gris">{p.empresa}{p.cliente !== p.empresa && ` — ${p.cliente}`}</p>
-          </div>
-          <span aria-hidden="true" className="mt-1 grid h-11 w-11 shrink-0 place-items-center rounded-full border border-tinta/20 transition-all duration-500 ease-[var(--ease-editorial)] group-hover:-rotate-45 group-hover:border-burdeo group-hover:bg-burdeo group-hover:text-crema">→</span>
+        <Icono nombre="externo" size={20} className="mt-1 shrink-0 text-burdeo transition-transform duration-500 ease-[var(--ease-editorial)] group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+      </div>
+      {pie && (
+        <div className="mx-5 flex justify-end border-t border-burdeo/10 pb-4 pt-3">
+          <span className="inline-flex items-center gap-2 font-serif text-[15px] italic text-burdeo">
+            Ver proyecto <span aria-hidden="true" className="not-italic transition-transform duration-500 group-hover:translate-x-1">→</span>
+          </span>
         </div>
-      </a>
-    </motion.article>
+      )}
+    </a>
   )
 }
 
-export default function Proyectos({ onOpen, filtro, setFiltro }) {
-  const lista = filtro === 'Todos' ? proyectos : proyectos.filter((p) => p.categorias.includes(filtro))
-  const filtros = ['Todos', ...CATEGORIAS]
-  const cuenta = (f) => (f === 'Todos' ? proyectos.length : proyectos.filter((p) => p.categorias.includes(f)).length)
+export default function Proyectos({ onOpen, filtro, setFiltro, onTodos }) {
+  const lista = filtrar(proyectos, filtro)
+  const pista = useRef(null)
+  const [pos, setPos] = useState({ i: 0, paginas: 1 })
+
+  const filtros = ['Todos', ...CATEGORIAS, ...(proyectos.some((p) => p.autoria === 'colaboracion') ? [DIRECCION] : [])]
+
+  const medir = useCallback(() => {
+    const el = pista.current
+    if (!el || !el.firstElementChild) return
+    const paso = el.firstElementChild.getBoundingClientRect().width + 24
+    const visibles = Math.max(1, Math.round((el.clientWidth + 24) / paso))
+    const paginas = Math.max(1, lista.length - visibles + 1)
+    setPos({ i: Math.min(paginas - 1, Math.round(el.scrollLeft / paso)), paginas, paso })
+  }, [lista.length])
+
+  useEffect(() => {
+    medir()
+    const el = pista.current
+    el?.addEventListener('scroll', medir, { passive: true })
+    window.addEventListener('resize', medir)
+    return () => { el?.removeEventListener('scroll', medir); window.removeEventListener('resize', medir) }
+  }, [medir, filtro])
+
+  useEffect(() => { pista.current?.scrollTo({ left: 0 }) }, [filtro])
+
+  const ir = (i) => pista.current?.scrollTo({ left: i * (pos.paso || 0), behavior: 'smooth' })
 
   return (
-    <section id="proyectos" className="py-28 md:py-44">
-      <div className="mx-auto w-full max-w-[1600px] px-5 md:px-10">
-        <div className="grid gap-8 md:grid-cols-12 md:items-end">
-          <div className="md:col-span-7">
-            <Etiqueta n="03">Proyectos</Etiqueta>
-            <h2 className="mt-8 text-[clamp(2.6rem,7vw,7rem)] font-semibold leading-[0.9] tracking-[-0.05em]">
-              <SplitWords text="Trabajo *seleccionado*" />
-            </h2>
-          </div>
-          <Reveal className="md:col-span-4 md:col-start-9">
-            <p className="text-[15px] leading-relaxed text-gris">
-              Diferencio con claridad lo que diseñé o produje yo de lo que dirigí o coordiné con otros equipos.
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <BadgeAutoria autoria="propio" />
-              <BadgeAutoria autoria="colaboracion" />
-            </div>
+    <section id="trabajos" className="py-16 md:py-20">
+      <div className="mx-auto w-full max-w-[1280px] px-5 md:px-10">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <Reveal className="flex items-center gap-6">
+            <h2 className="font-serif text-[clamp(2rem,3.4vw,2.9rem)] leading-tight">Trabajos seleccionados</h2>
+            <span className="hidden h-px w-16 bg-burdeo sm:block" aria-hidden="true" />
+          </Reveal>
+          <Reveal>
+            <button onClick={onTodos} className="group inline-flex items-center gap-2 font-serif text-[16px] text-burdeo">
+              <span className="subrayado">Ver todos los proyectos</span>
+              <span aria-hidden="true" className="transition-transform duration-500 group-hover:translate-x-1">→</span>
+            </button>
           </Reveal>
         </div>
 
         {/* Filtros */}
-        <LayoutGroup>
-          <Reveal className="sin-scrollbar -mx-5 mt-14 overflow-x-auto px-5 md:mx-0 md:px-0">
-            <div role="tablist" aria-label="Filtrar proyectos por categoría" className="flex w-max gap-2 md:w-auto md:flex-wrap">
-              {filtros.map((f) => {
-                const on = filtro === f
-                return (
-                  <button
-                    key={f}
-                    role="tab"
-                    aria-selected={on}
-                    onClick={() => setFiltro(f)}
-                    className={`relative whitespace-nowrap rounded-full px-5 py-2.5 text-[15px] transition-colors duration-500 ${on ? 'text-crema' : 'text-tinta hover:text-burdeo'}`}
-                  >
-                    {on && <motion.span layoutId="filtro-activo" className="absolute inset-0 rounded-full bg-tinta" transition={{ type: 'spring', stiffness: 380, damping: 32 }} />}
-                    {!on && <span className="absolute inset-0 rounded-full border border-tinta/15" />}
-                    <span className="relative">{f} <sup className="text-[10px] opacity-60">{cuenta(f)}</sup></span>
-                  </button>
-                )
-              })}
-            </div>
-          </Reveal>
+        <Reveal className="sin-scrollbar -mx-5 mt-6 overflow-x-auto px-5 md:mx-0 md:px-0">
+          <div role="tablist" aria-label="Filtrar proyectos" className="flex w-max gap-2 md:w-auto md:flex-wrap">
+            {filtros.map((f) => {
+              const on = filtro === f
+              const n = filtrar(proyectos, f).length
+              return (
+                <button
+                  key={f}
+                  role="tab"
+                  aria-selected={on}
+                  onClick={() => setFiltro(f)}
+                  className={`relative whitespace-nowrap rounded-full px-4 py-1.5 text-[14px] transition-colors duration-500 ${on ? 'text-crema' : 'text-tinta hover:text-burdeo'}`}
+                >
+                  {on && <motion.span layoutId="filtro-activo" className="absolute inset-0 rounded-full bg-burdeo" transition={{ type: 'spring', stiffness: 380, damping: 32 }} />}
+                  {!on && <span className="absolute inset-0 rounded-full border border-tinta/15" />}
+                  <span className="relative">{f} <sup className="text-[10px] opacity-60">{n}</sup></span>
+                </button>
+              )
+            })}
+          </div>
+        </Reveal>
 
-          <motion.div layout className="mt-14 grid grid-cols-12 gap-x-6 gap-y-16 md:gap-x-10 md:gap-y-20">
-            <AnimatePresence mode="popLayout">
-              {lista.map((p, i) => <Tarjeta key={p.slug} p={p} i={i} onOpen={onOpen} />)}
-            </AnimatePresence>
-          </motion.div>
-          {lista.length === 0 && (
-            <p className="mt-10 font-serif text-2xl italic text-gris">Pronto habrá proyectos en esta categoría.</p>
+        {/* Carrusel */}
+        <div className="relative mt-8">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={filtro}
+              ref={pista}
+              className="sin-scrollbar -mx-5 flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth px-5 pb-10 pt-2 md:-mx-3 md:px-3"
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.5, ease: EASE }}
+            >
+              {lista.map((p) => (
+                <div key={p.slug} className="w-[82%] shrink-0 snap-start sm:w-[calc((100%-1.5rem)/2)] lg:w-[calc((100%-3rem)/3)]">
+                  <Tarjeta p={p} onOpen={onOpen} />
+                </div>
+              ))}
+            </motion.div>
+          </AnimatePresence>
+
+          {pos.paginas > 1 && (
+            <>
+              <button
+                onClick={() => ir(pos.i - 1)}
+                disabled={pos.i === 0}
+                aria-label="Proyecto anterior"
+                className="absolute -left-5 top-[38%] hidden h-11 w-11 place-items-center rounded-full border border-burdeo/40 bg-crema text-burdeo shadow-sm transition-all hover:bg-burdeo hover:text-crema disabled:opacity-0 md:grid lg:-left-14"
+              >←</button>
+              <button
+                onClick={() => ir(pos.i + 1)}
+                disabled={pos.i >= pos.paginas - 1}
+                aria-label="Proyecto siguiente"
+                className="absolute -right-5 top-[38%] hidden h-11 w-11 place-items-center rounded-full border border-burdeo/40 bg-crema text-burdeo shadow-sm transition-all hover:bg-burdeo hover:text-crema disabled:opacity-0 md:grid lg:-right-14"
+              >→</button>
+            </>
           )}
-        </LayoutGroup>
+        </div>
+
+        {pos.paginas > 1 && (
+          <div className="mt-2 flex justify-center gap-2" role="tablist" aria-label="Posición del carrusel">
+            {Array.from({ length: pos.paginas }).map((_, i) => (
+              <button
+                key={i}
+                onClick={() => ir(i)}
+                aria-label={`Ir al grupo ${i + 1}`}
+                aria-selected={pos.i === i}
+                role="tab"
+                className={`h-2 rounded-full transition-all duration-500 ${pos.i === i ? 'w-6 bg-burdeo' : 'w-2 bg-tinta/20 hover:bg-tinta/40'}`}
+              />
+            ))}
+          </div>
+        )}
+
+        <p className="mt-6 text-center text-[13px] italic text-gris">
+          <span className="not-italic text-burdeo">●</span> Diseño propio: piezas creadas por mí. <span className="ml-3 not-italic text-burdeo">○</span> Dirección y coordinación: idea, brief y supervisión; diseño final de terceros.
+        </p>
       </div>
     </section>
+  )
+}
+
+const ICONO_FILTRO = {
+  'Marketing digital': 'grafico',
+  'Producción audiovisual': 'video',
+  'Diseño y contenido gráfico': 'imagen',
+  'Redes sociales': 'numeral',
+  'Comunicación corporativa': 'capas',
+  [DIRECCION]: 'megafono',
+}
+
+/** Página "Proyectos": todos los proyectos con filtros */
+export function TodosProyectos({ onOpen, filtro, setFiltro }) {
+  const lista = filtrar(proyectos, filtro)
+  const filtros = ['Todos', ...CATEGORIAS, ...(proyectos.some((p) => p.autoria === 'colaboracion') ? [DIRECCION] : [])]
+  return (
+    <main className="pt-28 md:pt-32">
+      <div className="mx-auto w-full max-w-[1280px] px-5 md:px-10">
+        <div className="grid items-center gap-10 lg:grid-cols-12">
+          <div className="lg:col-span-6">
+            <h1 className="font-serif text-[clamp(2.6rem,5vw,4.3rem)] leading-[1.02]">
+              <span className="block">Proyectos <span aria-hidden="true" className="ml-3 inline-block h-px w-16 translate-y-[-0.3em] bg-burdeo align-middle" /></span>
+              <span className="block">seleccionados</span>
+            </h1>
+            <Reveal><p className="mt-5 max-w-xl text-[17px] leading-relaxed text-tinta/85">{sitio.proyectosIntro}</p></Reveal>
+          </div>
+          <motion.div
+            className="relative hidden lg:col-span-6 lg:block"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1.1, ease: EASE, delay: 0.4 }}
+          >
+            <div aria-hidden="true" className="absolute -top-4 right-16 h-1/3 w-1/2 rotate-2 rounded-[24px] bg-burdeo" />
+            <Destello className="absolute -right-2 -top-8 h-10 w-10 text-burdeo" />
+            <Media src={sitio.proyectosImagen} alt="" ajuste="contain" fondo="#E9E2D7" className="relative aspect-[16/9] w-full rounded-[28px] shadow-[0_30px_60px_-30px_rgba(60,20,30,0.55)]" priority />
+          </motion.div>
+        </div>
+
+        {/* Filtros */}
+        <div className="sin-scrollbar -mx-5 mt-10 overflow-x-auto px-5 md:mx-0 md:px-0">
+          <div role="tablist" aria-label="Filtrar proyectos" className="flex w-max gap-3 md:w-auto md:flex-wrap">
+            {filtros.map((f) => {
+              const on = filtro === f
+              return (
+                <button
+                  key={f}
+                  role="tab"
+                  aria-selected={on}
+                  onClick={() => setFiltro(f)}
+                  className={`relative inline-flex items-center gap-2.5 whitespace-nowrap rounded-lg border px-5 py-2.5 font-serif text-[16px] transition-colors duration-500 ${on ? 'border-burdeo text-crema' : 'border-burdeo/40 text-tinta hover:border-burdeo hover:text-burdeo'}`}
+                >
+                  {on && <motion.span layoutId="filtro-pagina" className="absolute inset-0 rounded-[7px] bg-burdeo" transition={{ type: 'spring', stiffness: 380, damping: 32 }} />}
+                  {ICONO_FILTRO[f] && <Icono nombre={ICONO_FILTRO[f]} size={18} className={`relative ${on ? 'text-crema' : 'text-burdeo'}`} />}
+                  <span className="relative">{f}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        <div className="mt-10 grid gap-8 lg:grid-cols-12">
+          <motion.div layout className="grid gap-6 sm:grid-cols-2 lg:col-span-9 xl:grid-cols-3">
+            <AnimatePresence mode="popLayout">
+              {lista.map((p) => (
+                <motion.div
+                  key={p.slug}
+                  layout
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.25 } }}
+                  transition={{ duration: 0.6, ease: EASE }}
+                >
+                  <Tarjeta p={p} onOpen={onOpen} pie />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
+
+          <aside className="lg:col-span-3">
+            <Reveal className="rounded-[28px] bg-rosa p-7 lg:sticky lg:top-28">
+              <p className="font-serif text-[64px] leading-none text-burdeo" aria-hidden="true">“</p>
+              <blockquote className="-mt-4 font-serif text-[1.4rem] italic leading-snug">{sitio.frase}</blockquote>
+              <div className="mt-6 h-px w-12 bg-burdeo" />
+              <p className="mt-3 font-serif text-burdeo">{sitio.nombre}</p>
+            </Reveal>
+          </aside>
+        </div>
+        {lista.length === 0 && <p className="mt-6 font-serif text-xl italic text-gris">Pronto habrá proyectos en esta categoría.</p>}
+      </div>
+    </main>
   )
 }

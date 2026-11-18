@@ -77,7 +77,7 @@ export function Magnetic({ children, strength = 0.3, className = '' }) {
 /** Botón con relleno que barre desde abajo + flecha que se desplaza */
 export function Boton({ children, href, onClick, variante = 'solido', icono = '→', className = '', ...rest }) {
   const base =
-    'group relative inline-flex items-center gap-3 overflow-hidden rounded-full px-7 py-4 text-[15px] font-medium tracking-tight transition-colors duration-500 ease-[var(--ease-editorial)]'
+    'group relative inline-flex items-center gap-3 overflow-hidden rounded-full px-6 py-3.5 text-[15px] font-medium tracking-tight transition-colors duration-500 ease-[var(--ease-editorial)]'
   const estilos = {
     solido: 'bg-tinta text-crema hover:text-crema',
     contorno: 'border border-tinta/25 text-tinta hover:text-crema hover:border-burdeo',

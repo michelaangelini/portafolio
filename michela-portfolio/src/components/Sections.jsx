@@ -1,27 +1,30 @@
-import { useRef } from 'react'
-import { motion, useScroll, useTransform, useReducedMotion } from 'motion/react'
-import { EASE, parseWords, plain } from '../lib/util'
+import { useEffect, useRef, useState } from 'react'
+import { motion, AnimatePresence, useScroll, useTransform, useReducedMotion } from 'motion/react'
+import { EASE } from '../lib/util'
 import { sitio } from '../data/sitio'
 import { proyectos } from '../lib/datos'
-import { Reveal, SplitWords, Etiqueta, Boton, Magnetic } from './motion'
+import { Reveal, SplitWords, Magnetic } from './motion'
+import { Icono, Monograma, Destello } from './Iconos'
 import Media from './Media'
+import { formacion, cursos } from '../data/formacion'
 
-const contenedor = 'mx-auto w-full max-w-[1600px] px-5 md:px-10'
+const contenedor = 'mx-auto w-full max-w-[1280px] px-5 md:px-10'
 
-/* ---------- Cinta en movimiento ---------- */
-export function Cinta() {
-  const items = [...sitio.cinta, ...sitio.cinta]
+/** Texto con *frases destacadas* en cursiva burdeo */
+export function Enfasis({ texto }) {
+  return texto.split(/(\*[^*]+\*)/g).map((t, i) =>
+    t.startsWith('*') ? <em key={i} className="font-serif italic text-burdeo">{t.slice(1, -1)}</em> : <span key={i}>{t}</span>,
+  )
+}
+
+/** Título de sección con línea burdeo */
+export function TituloSeccion({ children, as: Tag = 'h2', className = '', destello = false }) {
   return (
-    <div className="relative z-10 -rotate-[1.5deg] overflow-hidden bg-burdeo py-4 text-crema md:py-5" aria-label={sitio.cinta.join(', ')}>
-      <div className="cinta flex w-max items-center whitespace-nowrap" aria-hidden="true">
-        {items.map((t, i) => (
-          <span key={i} className="flex items-center text-2xl md:text-4xl">
-            <span className={i % 2 ? 'font-serif italic' : 'font-medium tracking-tight'}>{t}</span>
-            <span className="mx-6 text-base text-crema/50 md:mx-10">✦</span>
-          </span>
-        ))}
-      </div>
-    </div>
+    <Reveal className={`flex items-center gap-5 ${className}`}>
+      <Tag className="font-serif text-[clamp(1.9rem,3.2vw,2.7rem)] leading-tight">{children}</Tag>
+      <span className="h-px w-14 bg-burdeo" aria-hidden="true" />
+      {destello && <Destello className="-ml-2 h-7 w-7 -translate-y-3 text-burdeo" />}
+    </Reveal>
   )
 }
 
@@ -30,7 +33,7 @@ export function ParallaxMedia({ className = '', ...props }) {
   const ref = useRef(null)
   const reduce = useReducedMotion()
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] })
-  const quieto = reduce || props.ajuste === 'contain' // piezas completas: sin recorte
+  const quieto = reduce || props.ajuste === 'contain'
   const y = useTransform(scrollYProgress, [0, 1], quieto ? ['0%', '0%'] : ['-7%', '7%'])
   return (
     <div ref={ref} className={`relative overflow-hidden ${className}`}>
@@ -41,191 +44,269 @@ export function ParallaxMedia({ className = '', ...props }) {
   )
 }
 
+/** Retrato con formas burdeo (o monograma si aún no hay foto) */
+export function Retrato({ className = '' }) {
+  const foto = sitio.sobreMi.foto
+  return (
+    <div className={`relative ${className}`}>
+      <div aria-hidden="true" className="absolute -right-2 -top-5 h-1/3 w-3/4 rotate-3 rounded-[26px] bg-burdeo" />
+      <div aria-hidden="true" className="absolute -bottom-4 -left-4 h-1/4 w-1/3 rounded-[22px] bg-burdeo-2/80" />
+      <div className="relative aspect-[4/5] overflow-hidden rounded-[26px] shadow-[0_30px_60px_-30px_rgba(60,20,30,0.6)]">
+        {foto ? (
+          <img src={foto} alt={`Retrato de ${sitio.nombre}`} loading="lazy" className="h-full w-full object-cover" style={{ objectPosition: sitio.sobreMi.fotoPosicion || 'center 25%' }} />
+        ) : (
+          <div className="grid h-full w-full place-items-center bg-gradient-to-br from-[#8d2a45] via-burdeo to-[#4e0d20]">
+            <Monograma className="w-1/2 text-crema/90" />
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 /* ---------- Sobre mí ---------- */
 export function SobreMi() {
   const s = sitio.sobreMi
   return (
-    <section id="sobre-mi" className="py-28 md:py-44">
-      <div className={`${contenedor} grid gap-14 md:grid-cols-12 md:gap-10`}>
-        <div className="md:col-span-5">
-          {s.foto && (
-            <Reveal className="mb-6">
-              <ParallaxMedia src={s.foto} alt={`Retrato de ${sitio.nombre}`} className="aspect-[4/5] w-full max-w-[520px]" tono="#E2D6CC" />
+    <section id="sobre-mi" className="py-20 md:py-28">
+      <div className={`${contenedor} grid items-start gap-12 lg:grid-cols-12 lg:gap-10`}>
+        {/* Texto */}
+        <div className="lg:col-span-4">
+          <h2 className="font-serif text-[clamp(2.6rem,4.6vw,4rem)] leading-none">
+            <SplitWords text="Sobre mí" />
+          </h2>
+          <Reveal><div className="mt-5 h-px w-14 bg-burdeo" /></Reveal>
+          {s.parrafos.map((p, i) => (
+            <Reveal key={i} delay={i * 0.08}>
+              <p className="mt-5 text-[16.5px] leading-relaxed text-tinta/85"><Enfasis texto={p} /></p>
+            </Reveal>
+          ))}
+
+          {s.idiomas?.length > 0 && (
+            <Reveal delay={0.15} className="mt-6 border-t border-burdeo/15 pt-4">
+              <p className="text-[14px] text-gris"><span className="text-tinta">Idiomas:</span> {s.idiomas.join(' · ')}</p>
             </Reveal>
           )}
-          <Reveal delay={0.1} className={`max-w-[520px] border-t border-tinta/15 pt-5 ${s.foto ? '' : 'md:sticky md:top-32'}`}>
-            <p className="text-[13px] uppercase tracking-[0.18em] text-gris">Formación</p>
-            <p className="mt-2 text-xl leading-tight tracking-tight">{s.formacion.titulo}</p>
-            <p className="mt-1 text-gris">
-              {s.formacion.institucion} · <span className="font-serif text-lg italic text-burdeo">{s.formacion.distincion}</span>
-            </p>
-            {s.estudios?.length > 0 && (
-              <ul className="mt-5 space-y-3 border-t border-tinta/10 pt-4">
-                {s.estudios.map((e) => (
-                  <li key={e.titulo}>
-                    <p className="leading-snug tracking-tight">{e.titulo}</p>
-                    <p className="text-[14px] text-gris">{e.institucion}{e.periodo && ` · ${e.periodo}`}</p>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Reveal>
         </div>
 
-        <div className="md:col-span-7">
-          <Etiqueta n="01">Sobre mí</Etiqueta>
-          <h2 className="mt-8 text-[clamp(2.1rem,4.6vw,4.4rem)] font-medium leading-[1.02] tracking-[-0.035em]">
-            <SplitWords text={s.titulo} />
-          </h2>
-          <div className="mt-10 grid gap-6 text-lg leading-relaxed text-tinta/75 md:grid-cols-2 md:gap-8">
-            {s.parrafos.map((p, i) => (
-              <Reveal key={i} delay={i * 0.12}><p>{p}</p></Reveal>
-            ))}
-          </div>
+        {/* Retrato */}
+        <Reveal className="mx-auto w-full max-w-[380px] lg:col-span-4 lg:max-w-none">
+          <Retrato />
+        </Reveal>
 
-          <ul className="mt-16 grid gap-x-8 sm:grid-cols-2">
-            {s.ejes.map((e, i) => (
-              <Reveal as="li" key={e.titulo} delay={(i % 2) * 0.08} className="group border-t border-tinta/15 py-5">
-                <div className="flex gap-4">
-                  <span className="font-serif text-lg italic text-burdeo-2">{String(i + 1).padStart(2, '0')}</span>
-                  <div>
-                    <p className="font-medium tracking-tight transition-colors duration-500 group-hover:text-burdeo">{e.titulo}</p>
-                    <p className="mt-1 text-[15px] leading-snug text-gris">{e.texto}</p>
-                  </div>
+        {/* Herramientas */}
+        <div className="lg:col-span-4">
+          <Reveal className="flex items-start gap-2">
+            <h3 className="font-serif text-[clamp(1.5rem,2.2vw,1.9rem)] leading-tight">Mis herramientas y habilidades</h3>
+            <Destello className="h-7 w-7 shrink-0 -translate-y-2 text-burdeo" />
+          </Reveal>
+          <ul className="mt-6 grid grid-cols-2 gap-3">
+            {s.herramientas.map((h, i) => (
+              <Reveal as="li" key={h.nombre} delay={i * 0.04} y={14}>
+                <div className="tarjeta-suave group flex h-full items-center gap-3 rounded-2xl px-4 py-3.5 transition-all duration-500 hover:-translate-y-0.5 hover:border-burdeo/30">
+                  <Icono nombre={h.icono} className="shrink-0 text-burdeo transition-transform duration-500 group-hover:scale-110" />
+                  <span className="font-serif text-[16px] leading-tight">{h.nombre}</span>
                 </div>
               </Reveal>
             ))}
           </ul>
-
-          <Reveal className="mt-12">
-            <p className="text-[13px] uppercase tracking-[0.18em] text-gris">Herramientas</p>
-            <ul className="mt-4 flex flex-wrap gap-2">
-              {s.herramientas.map((h) => (
-                <li key={h} className="rounded-full border border-tinta/20 px-4 py-2 text-[15px] transition-all duration-500 ease-[var(--ease-editorial)] hover:-translate-y-0.5 hover:border-burdeo hover:bg-burdeo hover:text-crema">
-                  {h}
-                </li>
-              ))}
-            </ul>
-            {s.idiomas?.length > 0 && (
-              <>
-                <p className="mt-8 text-[13px] uppercase tracking-[0.18em] text-gris">Idiomas</p>
-                <p className="mt-3 text-[15px]">{s.idiomas.join('  ·  ')}</p>
-              </>
-            )}
-          </Reveal>
         </div>
       </div>
+      <Formacion />
     </section>
   )
 }
 
-/* ---------- Frase que se ilumina con el scroll (scroll narrativo) ---------- */
-function Palabra({ w, progress, range }) {
-  const reduce = useReducedMotion()
-  const opacity = useTransform(progress, range, reduce ? [1, 1] : [0.14, 1])
+/* ---------- Formación académica ---------- */
+function VisorCertificado({ doc, onCerrar }) {
+  const esPdf = /\.pdf($|\?)/i.test(doc?.src || '')
+  useEffect(() => {
+    if (!doc) return
+    const esc = (e) => e.key === 'Escape' && onCerrar()
+    window.addEventListener('keydown', esc)
+    document.body.style.overflow = 'hidden'
+    return () => { window.removeEventListener('keydown', esc); document.body.style.overflow = '' }
+  }, [doc, onCerrar])
   return (
-    <motion.span style={{ opacity }} className={w.acento ? 'acento' : ''}>
-      {w.t}{w.punt}{' '}
-    </motion.span>
+    <AnimatePresence>
+      {doc && (
+        <motion.div
+          role="dialog" aria-modal="true" aria-label={`Certificado: ${doc.titulo}`}
+          className="fixed inset-0 z-[95] flex items-center justify-center bg-tinta/80 p-4 backdrop-blur-sm"
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}
+          onClick={onCerrar}
+        >
+          <motion.div
+            className="flex h-[86vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-crema shadow-2xl"
+            initial={{ y: 30, scale: 0.97 }} animate={{ y: 0, scale: 1 }} exit={{ y: 20, scale: 0.98 }} transition={{ duration: 0.45, ease: EASE }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between gap-4 border-b border-burdeo/15 px-5 py-3">
+              <p className="font-serif text-[16px]">{doc.titulo}</p>
+              <div className="flex items-center gap-4 text-[14px]">
+                <a href={doc.src} target="_blank" rel="noopener noreferrer" className="subrayado text-burdeo">Abrir en pestaña nueva ↗</a>
+                <button onClick={onCerrar} className="subrayado" autoFocus>Cerrar ✕</button>
+              </div>
+            </div>
+            <div className="flex-1 bg-white">
+              {esPdf ? <iframe src={doc.src} title={doc.titulo} className="h-full w-full" /> : <img src={doc.src} alt={doc.titulo} className="h-full w-full object-contain" />}
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   )
 }
 
-export function Frase() {
-  const ref = useRef(null)
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start 0.85', 'end 0.45'] })
-  const words = parseWords(sitio.frase)
+function TarjetaFormacion({ f, i, onVer }) {
   return (
-    <section ref={ref} className="bg-crema-2/60 py-28 md:py-44" aria-label="Frase destacada">
-      <div className={contenedor}>
-        <p className="sr-only">{plain(sitio.frase)}</p>
-        <p aria-hidden="true" className="max-w-[1250px] text-[clamp(2rem,5.2vw,5rem)] font-medium leading-[1.05] tracking-[-0.035em]">
-          {words.map((w, i) => (
-            <Palabra key={i} w={w} progress={scrollYProgress} range={[i / words.length, (i + 1) / words.length]} />
-          ))}
-        </p>
+    <Reveal delay={i * 0.08} y={24} className="h-full">
+      <article className="tarjeta-suave group flex h-full flex-col overflow-hidden rounded-2xl">
+        <div className="relative aspect-[16/8] overflow-hidden" style={{ backgroundColor: f.fondoLogo || '#F0E4E2' }}>
+          {f.foto ? (
+            <>
+              <img src={f.foto} alt={`${f.institucion}`} loading="lazy" className="h-full w-full object-cover transition-transform duration-[1200ms] ease-[var(--ease-editorial)] group-hover:scale-[1.06]" />
+              {f.logo && (
+                <span className="absolute bottom-3 left-3 grid h-11 place-items-center rounded-lg px-2 shadow-sm" style={{ backgroundColor: f.fondoLogo || '#fff' }}>
+                  <img src={f.logo} alt="" className="h-8 w-auto max-w-[110px] object-contain" />
+                </span>
+              )}
+            </>
+          ) : (
+            <img src={f.logo} alt={`Logo ${f.institucion}`} loading="lazy" className="h-full w-full object-contain px-8 py-6 transition-transform duration-[1200ms] ease-[var(--ease-editorial)] group-hover:scale-[1.06]" />
+          )}
+          <span className="absolute left-3 top-3 rounded-full bg-crema/95 px-2.5 py-0.5 text-[11px] uppercase tracking-[0.12em] text-burdeo shadow-sm">{f.tipo}</span>
+        </div>
+        <div className="flex flex-1 flex-col p-5">
+          <h4 className="font-serif text-[1.12rem] leading-snug">{f.institucion}</h4>
+          <p className="mt-0.5 text-[13px] text-gris">{[f.pais, f.fechas].filter(Boolean).join(' · ')}</p>
+          <ul className="mt-3 space-y-2">
+            {f.programas.map((p) => (
+              <li key={p.nombre}>
+                <p className="text-[11px] uppercase tracking-[0.12em] text-gris">{p.etiqueta}</p>
+                <p className="font-serif text-[1.05rem] leading-snug text-burdeo">{p.nombre}</p>
+              </li>
+            ))}
+          </ul>
+          {(f.distincion || f.detalle) && (
+            <div className="mt-3 space-y-1 border-t border-burdeo/10 pt-3 text-[13.5px]">
+              {f.distincion && <p className="flex items-center gap-1.5 font-serif italic text-burdeo"><span aria-hidden="true">✦</span>{f.distincion}</p>}
+              {f.detalle && <p className="text-tinta/75">{f.detalle}</p>}
+            </div>
+          )}
+          {f.certificado && (
+            <button onClick={() => onVer({ src: f.certificado, titulo: `${f.programas[0]?.nombre} · ${f.institucion}` })} className="mt-auto inline-flex items-center gap-2 self-start pt-4 font-serif text-[14.5px] italic text-burdeo">
+              <Icono nombre="documento" size={17} /> <span className="subrayado">Ver certificado</span>
+            </button>
+          )}
+        </div>
+      </article>
+    </Reveal>
+  )
+}
+
+export function Formacion() {
+  const [doc, setDoc] = useState(null)
+  return (
+    <div className={`${contenedor} mt-16`} id="formacion">
+      <TituloSeccion as="h3">Formación académica</TituloSeccion>
+      <div className="mt-7 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+        {formacion.map((f, i) => <TarjetaFormacion key={f.institucion} f={f} i={i} onVer={setDoc} />)}
       </div>
-    </section>
+      {cursos.length > 0 && (
+        <Reveal className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 rounded-2xl bg-rosa/70 px-5 py-3.5 text-[14px]">
+          <span className="text-[11px] uppercase tracking-[0.14em] text-gris">Otros cursos</span>
+          {cursos.map((c) => (
+            <span key={c.nombre} className="inline-flex items-center gap-2">
+              <span className="font-serif">{c.nombre}</span>
+              <span className="text-gris">· {[c.institucion, c.fecha].filter(Boolean).join(' · ')}</span>
+              {c.certificado && <button onClick={() => setDoc({ src: c.certificado, titulo: c.nombre })} className="subrayado font-serif italic text-burdeo">Ver certificado</button>}
+            </span>
+          ))}
+        </Reveal>
+      )}
+      <VisorCertificado doc={doc} onCerrar={() => setDoc(null)} />
+    </div>
   )
 }
 
 /* ---------- Experiencia ---------- */
+function TarjetaExperiencia({ x, onOpen }) {
+  const [abierta, setAbierta] = useState(false)
+  const rel = x.proyectos.map((s) => proyectos.find((p) => p.slug === s)).filter(Boolean)
+  return (
+    <article className="tarjeta-suave relative flex h-full flex-col overflow-hidden rounded-2xl sm:flex-row">
+      <div className="relative h-40 shrink-0 sm:h-auto sm:w-[38%]">
+        {x.imagen ? (
+          <img src={x.imagen} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+        ) : (
+          <div className="absolute inset-0 grid place-items-center bg-gradient-to-br from-[#efdcdc] to-[#e2c6c8]">
+            <span className="px-4 text-center font-serif text-[clamp(1.4rem,2.2vw,1.9rem)] italic leading-tight text-burdeo/80">{x.empresa}</span>
+          </div>
+        )}
+      </div>
+      <div className="flex flex-1 flex-col p-5 md:p-6">
+        <h3 className="font-serif text-[1.45rem] leading-tight">{x.empresa}</h3>
+        {x.cargo && <p className="mt-1 font-serif italic text-burdeo">{x.cargo}</p>}
+        <p className="mt-1 text-[14px] text-gris">{x.periodo}{x.contratacion && ` · ${x.contratacion}`}</p>
+        <p className="mt-3 text-[15px] leading-relaxed text-tinta/85">{x.descripcion}</p>
+
+        <AnimatePresence initial={false}>
+          {abierta && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.5, ease: EASE }}
+              className="overflow-hidden"
+            >
+              <ul className="mt-4 space-y-1.5 border-t border-burdeo/10 pt-4">
+                {x.puntos.map((p) => (
+                  <li key={p} className="flex gap-2.5 text-[14.5px] text-tinta/85">
+                    <span className="mt-[9px] h-px w-3 shrink-0 bg-burdeo" aria-hidden="true" />{p}
+                  </li>
+                ))}
+              </ul>
+              {x.marcas && <p className="mt-3 text-[14px] text-gris"><span className="text-tinta">Cuentas y marcas:</span> {x.marcas}</p>}
+              {rel.length > 0 && (
+                <ul className="mt-3 flex flex-wrap gap-2">
+                  {rel.map((p) => (
+                    <li key={p.slug}>
+                      <button onClick={() => onOpen(p.slug)} className="rounded-full border border-burdeo/25 px-3 py-1 text-[13px] text-burdeo transition-colors hover:bg-burdeo hover:text-crema">
+                        {p.titulo} →
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <button
+          onClick={() => setAbierta((v) => !v)}
+          aria-expanded={abierta}
+          className="mt-4 inline-flex items-center gap-2 self-start font-serif text-[15px] italic text-burdeo"
+        >
+          <span className="subrayado">{abierta ? 'Ver menos' : 'Ver funciones y proyectos'}</span>
+          <motion.span animate={{ rotate: abierta ? 180 : 0 }} aria-hidden="true">⌄</motion.span>
+        </button>
+      </div>
+    </article>
+  )
+}
+
 export function Experiencia({ onOpen }) {
   return (
-    <section id="experiencia" className="py-28 md:py-44">
+    <section id="experiencia" className="pb-20 md:pb-28">
       <div className={contenedor}>
-        <Etiqueta n="02">Experiencia</Etiqueta>
-        <h2 className="mt-8 max-w-4xl text-[clamp(2.1rem,4.6vw,4.4rem)] font-medium leading-[1.02] tracking-[-0.035em]">
-          <SplitWords text="Experiencia entre *agencia* y *empresa*." />
-        </h2>
-
-        <div className="mt-20 space-y-24 md:space-y-32">
-          {sitio.experiencia.map((x, idx) => {
-            const rel = x.proyectos.map((s) => proyectos.find((p) => p.slug === s)).filter(Boolean)
-            return (
-              <article key={x.empresa} className="relative">
-                <motion.div
-                  className="h-px origin-left bg-tinta/25"
-                  initial={{ scaleX: 0 }}
-                  whileInView={{ scaleX: 1 }}
-                  viewport={{ once: true, amount: 0.5 }}
-                  transition={{ duration: 1.4, ease: EASE }}
-                />
-                <div className="grid gap-10 pt-8 md:grid-cols-12">
-                  <div className="md:col-span-5">
-                    <Reveal y={20} className="flex items-baseline gap-4 text-gris">
-                      <span className="font-serif text-lg italic text-burdeo-2">{String.fromCharCode(65 + idx)}.</span>
-                      <span className="text-[13px] uppercase tracking-[0.18em]">{x.tipo}</span>
-                    </Reveal>
-                    <h3 className="mt-4 text-[clamp(2.6rem,6.4vw,6.2rem)] font-semibold leading-[0.9] tracking-[-0.05em]">
-                      <SplitWords text={x.empresa} stagger={0.08} />
-                    </h3>
-                    <Reveal delay={0.2} className="mt-5 flex flex-wrap gap-x-4 gap-y-1 text-gris">
-                      {x.cargo && <span className="text-tinta">{x.cargo}</span>}
-                      {x.periodo && <span className="font-serif text-lg italic">{x.periodo}</span>}
-                    </Reveal>
-                    {x.contratacion && <Reveal delay={0.25}><p className="mt-2 text-[14px] text-gris">{x.contratacion}</p></Reveal>}
-                  </div>
-
-                  <div className="md:col-span-6 md:col-start-7">
-                    <Reveal><p className="text-xl leading-snug tracking-tight md:text-2xl">{x.descripcion}</p></Reveal>
-                    <ul className="mt-8 grid gap-x-8 sm:grid-cols-2">
-                      {x.puntos.map((p, i) => (
-                        <Reveal as="li" key={p} delay={i * 0.04} y={14} className="flex gap-3 border-b border-tinta/10 py-3 text-[15px] text-tinta/80">
-                          <span className="mt-[9px] h-px w-3 shrink-0 bg-burdeo" aria-hidden="true" />
-                          {p}
-                        </Reveal>
-                      ))}
-                    </ul>
-                    {x.marcas && (
-                      <Reveal className="mt-6 text-[15px] text-gris">
-                        <span className="text-[13px] uppercase tracking-[0.18em]">Cuentas y marcas · </span>
-                        <span className="text-tinta">{x.marcas}</span>
-                      </Reveal>
-                    )}
-                    {rel.length > 0 && (
-                      <Reveal className="mt-10">
-                        <p className="text-[13px] uppercase tracking-[0.18em] text-gris">Proyectos relacionados</p>
-                        <ul className="mt-3">
-                          {rel.map((p) => (
-                            <li key={p.slug}>
-                              <a
-                                href={`#proyecto-${p.slug}`}
-                                onClick={(e) => { e.preventDefault(); onOpen(p.slug) }}
-                                className="group flex items-center justify-between gap-4 border-b border-tinta/10 py-3 transition-colors duration-500 hover:text-burdeo"
-                              >
-                                <span className="text-lg tracking-tight transition-transform duration-500 ease-[var(--ease-editorial)] group-hover:translate-x-2">{p.titulo}</span>
-                                <span aria-hidden="true" className="transition-transform duration-500 ease-[var(--ease-editorial)] group-hover:-rotate-45">→</span>
-                              </a>
-                            </li>
-                          ))}
-                        </ul>
-                      </Reveal>
-                    )}
-                  </div>
-                </div>
-              </article>
-            )
-          })}
+        <TituloSeccion>Mi experiencia</TituloSeccion>
+        <div className="mt-8 grid items-start gap-6 lg:grid-cols-2">
+          {sitio.experiencia.map((x, i) => (
+            <Reveal key={x.empresa} delay={(i % 2) * 0.1}>
+              <TarjetaExperiencia x={x} onOpen={onOpen} />
+            </Reveal>
+          ))}
         </div>
       </div>
     </section>
@@ -236,34 +317,30 @@ export function Experiencia({ onOpen }) {
 export function IA() {
   const ia = sitio.ia
   return (
-    <section id="ia" className="py-28 md:py-44">
-      <div className={`${contenedor} grid gap-14 md:grid-cols-12`}>
-        <div className="md:col-span-5">
-          <div className="md:sticky md:top-32">
-            <Etiqueta n="04">IA aplicada</Etiqueta>
-            <h2 className="mt-8 text-[clamp(2.1rem,4.2vw,4rem)] font-medium leading-[1.02] tracking-[-0.035em]">
-              <SplitWords text={ia.titulo} />
-            </h2>
-            <Reveal delay={0.1}><p className="mt-8 max-w-md text-lg leading-relaxed text-tinta/75">{ia.intro}</p></Reveal>
-            <Reveal delay={0.2}><p className="mt-6 max-w-md font-serif text-2xl italic leading-snug text-burdeo">{ia.nota}</p></Reveal>
+    <section id="ia" className="pb-20 md:pb-28">
+      <div className={contenedor}>
+        <div className="rounded-[28px] bg-rosa/70 p-6 md:p-10">
+          <div className="grid gap-8 lg:grid-cols-12">
+            <div className="lg:col-span-4">
+              <TituloSeccion destello>IA aplicada</TituloSeccion>
+              <Reveal><p className="mt-5 text-[16px] leading-relaxed text-tinta/85">{ia.intro}</p></Reveal>
+              <Reveal delay={0.1}><p className="mt-4 font-serif text-[17px] italic leading-snug text-burdeo">{ia.nota}</p></Reveal>
+            </div>
+            <ul className="grid gap-3 sm:grid-cols-2 lg:col-span-8">
+              {ia.usos.map((u, i) => (
+                <Reveal as="li" key={u.titulo} delay={i * 0.05} y={16}>
+                  <div className="group flex h-full gap-4 rounded-2xl bg-white/60 p-4 transition-colors duration-500 hover:bg-burdeo hover:text-crema">
+                    <span className="font-serif text-xl italic text-burdeo transition-colors group-hover:text-crema/80">{String(i + 1).padStart(2, '0')}</span>
+                    <div>
+                      <p className="font-serif text-[17px] leading-snug">{u.titulo}</p>
+                      <p className="mt-1 text-[14px] leading-snug text-gris transition-colors group-hover:text-crema/80">{u.texto}</p>
+                    </div>
+                  </div>
+                </Reveal>
+              ))}
+            </ul>
           </div>
         </div>
-
-        <ol className="md:col-span-7">
-          {ia.usos.map((u, i) => (
-            <Reveal as="li" key={u.titulo} delay={i * 0.06} className="group relative overflow-hidden border-t border-tinta/15 last:border-b">
-              <span aria-hidden="true" className="absolute inset-0 origin-bottom scale-y-0 bg-burdeo transition-transform duration-700 ease-[var(--ease-editorial)] group-hover:scale-y-100" />
-              <div className="relative grid grid-cols-[3rem_1fr] gap-4 px-1 py-7 transition-colors duration-500 group-hover:text-crema md:grid-cols-[4rem_1fr_auto] md:px-4 md:py-9">
-                <span className="font-serif text-2xl italic text-burdeo-2 transition-colors duration-500 group-hover:text-crema/70">{String(i + 1).padStart(2, '0')}</span>
-                <div>
-                  <p className="text-2xl font-medium tracking-tight md:text-3xl">{u.titulo}</p>
-                  <p className="mt-2 max-w-lg text-[15px] leading-snug text-gris transition-colors duration-500 group-hover:text-crema/80">{u.texto}</p>
-                </div>
-                <span aria-hidden="true" className="hidden self-center text-2xl transition-transform duration-500 ease-[var(--ease-editorial)] group-hover:translate-x-1 group-hover:-rotate-45 md:block">→</span>
-              </div>
-            </Reveal>
-          ))}
-        </ol>
       </div>
     </section>
   )
@@ -271,60 +348,73 @@ export function IA() {
 
 /* ---------- Contacto (cierre) ---------- */
 export function Contacto() {
-  const ref = useRef(null)
-  const reduce = useReducedMotion()
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'start 0.25'] })
-  const inset = useTransform(scrollYProgress, [0, 1], reduce ? [0, 0] : [5, 0])
-  const radius = useTransform(scrollYProgress, [0, 1], reduce ? [0, 0] : [48, 0])
-  const clipPath = useTransform([inset, radius], ([i, r]) => `inset(0% ${i}% 0% ${i}% round ${r}px ${r}px 0 0)`)
   const c = sitio.contacto
-  const letras = sitio.cierre.titulo.split('')
-
+  const reduce = useReducedMotion()
+  const linkedinCorto = c.linkedin.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')
+  const tarjetas = [
+    { icono: 'correo', titulo: 'Email', texto: c.email, href: `mailto:${c.email}` },
+    { icono: 'linkedin', titulo: 'LinkedIn', texto: linkedinCorto, href: c.linkedin, externo: true },
+    { icono: 'documento', titulo: 'CV', texto: 'Descargar CV', href: c.cv, descarga: true },
+  ]
   return (
-    <motion.section id="contacto" ref={ref} style={{ clipPath }} className="relative bg-tinta text-crema">
-      <div className={`${contenedor} pb-10 pt-28 md:pt-40`}>
-        <Etiqueta n="05" claro>Contacto</Etiqueta>
+    <section id="contacto" className="relative overflow-hidden pb-10 pt-16 md:pt-24">
+      <div className={contenedor}>
+        <div className="grid items-center gap-10 lg:grid-cols-12">
+          <div className="lg:col-span-5">
+            <div className="relative inline-block">
+              <h2 className="font-serif text-[clamp(2.8rem,6vw,5rem)] leading-none">
+                <SplitWords text={sitio.cierre.titulo} />
+              </h2>
+              <Destello className="absolute -right-10 -top-5 h-9 w-9 text-burdeo" />
+            </div>
+            <Reveal><p className="mt-6 max-w-md text-[17px] leading-relaxed text-tinta/85"><Enfasis texto={sitio.cierre.texto} /></p></Reveal>
+          </div>
 
-        <h2 className="mt-10 whitespace-nowrap text-[clamp(4rem,18vw,18rem)] font-semibold leading-[0.82] tracking-[-0.06em]" aria-label={sitio.cierre.titulo}>
-          <motion.span aria-hidden="true" className="block overflow-hidden pb-[0.05em]" initial="h" whileInView="s" viewport={{ once: true, amount: 0.4 }} transition={{ staggerChildren: 0.06 }}>
-            {letras.map((l, i) => (
-              <motion.span
-                key={i}
-                className={`inline-block ${l === '.' ? 'text-burdeo-2' : ''}`}
-                variants={{ h: { y: reduce ? 0 : '105%', opacity: reduce ? 0 : 1 }, s: { y: 0, opacity: 1, transition: { duration: 1.1, ease: EASE } } }}
-              >
-                {l}
-              </motion.span>
-            ))}
-          </motion.span>
-        </h2>
-
-        <div className="mt-14 grid gap-12 md:mt-20 md:grid-cols-12">
-          <Reveal className="md:col-span-5">
-            <p className="text-xl leading-snug text-crema/80 md:text-2xl">{sitio.cierre.texto}</p>
-          </Reveal>
-          <div className="md:col-span-6 md:col-start-7">
-            <Reveal>
-              <p className="text-[13px] uppercase tracking-[0.18em] text-crema/50">Escríbeme</p>
-              <a href={`mailto:${c.email}`} className="subrayado mt-3 inline-block break-all text-[clamp(1.6rem,3.6vw,3.2rem)] font-medium tracking-tight transition-colors duration-500 hover:text-[#E5899F]">
-                {c.email}
-              </a>
-            </Reveal>
-            <Reveal delay={0.12} className="mt-10 flex flex-wrap gap-3">
-              <Magnetic><Boton variante="claro" href={c.linkedin} target="_blank" rel="noopener noreferrer" icono="↗">LinkedIn</Boton></Magnetic>
-              <Magnetic><Boton variante="claroContorno" href={c.cv} download icono="↓">Descargar CV</Boton></Magnetic>
+          <div className="lg:col-span-7">
+            <div className="grid gap-4 sm:grid-cols-[1.45fr_1.25fr_0.8fr]">
+              {tarjetas.map((t, i) => (
+                <Reveal key={t.titulo} delay={i * 0.08} y={20}>
+                  <a
+                    href={t.href}
+                    {...(t.externo ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                    {...(t.descarga ? { download: true } : {})}
+                    className="tarjeta-suave group flex h-full flex-col items-center gap-1.5 rounded-2xl px-4 py-5 text-center transition-all duration-500 hover:-translate-y-1 hover:border-burdeo/30"
+                  >
+                    {t.icono === 'linkedin' ? (
+                      <span className="font-serif text-[26px] font-bold leading-none text-burdeo">in</span>
+                    ) : (
+                      <Icono nombre={t.icono} size={28} className="text-burdeo transition-transform duration-500 group-hover:scale-110" />
+                    )}
+                    <span className="mt-1 font-serif text-[18px]">{t.titulo}</span>
+                    <span className="text-[13.5px] text-gris [overflow-wrap:anywhere]">{t.texto}</span>
+                  </a>
+                </Reveal>
+              ))}
+            </div>
+            <Reveal delay={0.2} className="mt-6 flex flex-wrap justify-center gap-3">
+              <Magnetic>
+                <a href={`mailto:${c.email}`} className="group inline-flex items-center gap-3 rounded-lg bg-burdeo px-8 py-3.5 font-serif text-[17px] text-crema transition-colors duration-500 hover:bg-burdeo-2">
+                  Escribirme <span aria-hidden="true" className="transition-transform duration-500 group-hover:translate-x-1">→</span>
+                </a>
+              </Magnetic>
+              <Magnetic>
+                <a href={c.linkedin} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-3 rounded-lg border border-burdeo/70 px-8 py-3.5 font-serif text-[17px] transition-colors duration-500 hover:bg-burdeo hover:text-crema">
+                  <span className="font-bold">in</span> Ver LinkedIn
+                </a>
+              </Magnetic>
             </Reveal>
           </div>
         </div>
 
-        <footer className="mt-28 flex flex-col gap-4 border-t border-crema/15 pt-6 text-[13px] text-crema/50 md:mt-40 md:flex-row md:items-center md:justify-between">
-          <p>© {new Date().getFullYear()} {sitio.nombre}. Todos los derechos reservados.</p>
-          <p className="font-serif text-base italic">{sitio.disciplinas.join(' · ')}</p>
-          <button onClick={() => window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' })} className="subrayado self-start text-crema/80 md:self-auto">
+        <footer className="mt-20 flex flex-col gap-3 border-t border-burdeo/15 pt-6 text-[13px] text-gris md:flex-row md:items-center md:justify-between">
+          <p>© {new Date().getFullYear()} {sitio.nombre}</p>
+          <p className="font-serif italic">{sitio.disciplinas.join(' · ')}</p>
+          <button onClick={() => window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' })} className="subrayado self-start md:self-auto">
             Volver arriba ↑
           </button>
         </footer>
       </div>
-    </motion.section>
+      <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 -right-24 h-64 w-64 rounded-full bg-burdeo/10 blur-2xl" />
+    </section>
   )
 }

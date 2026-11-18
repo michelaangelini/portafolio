@@ -21,6 +21,17 @@ export const sitio = {
     'Transformo ideas en contenidos, campañas y experiencias de comunicación que conectan marcas con personas.',
   estado: 'Abierta a nuevas oportunidades',
 
+  /* ---------- ÁREAS (tarjetas de la portada) ----------
+     filtro: una categoría de proyectos, o 'Dirección y coordinación'      */
+  // imagen: ilustraciones de referencia en public/areas/. Puedes reemplazarlas
+  // por fotos propias (ej: 'areas/mi-foto.jpg').
+  areas: [
+    { titulo: 'Marketing Digital', imagen: 'areas/marketing-digital.svg', filtro: 'Marketing digital' },
+    { titulo: 'Contenido Audiovisual', imagen: 'areas/contenido-audiovisual.svg', filtro: 'Producción audiovisual' },
+    { titulo: 'Diseño Gráfico', imagen: 'areas/diseno-grafico.svg', filtro: 'Diseño y contenido gráfico' },
+    { titulo: 'Dirección Creativa', imagen: 'areas/direccion-creativa.svg', filtro: 'Dirección y coordinación' },
+  ],
+
   // Muestra u oculta las etiquetas "Contenido provisional" en todo el sitio.
   // Cuando hayas cargado tus proyectos reales, cámbialo a false.
   mostrarAvisosProvisionales: true,
@@ -28,6 +39,17 @@ export const sitio = {
   // true = el sitio muestra SOLO los proyectos con provisional: false.
   // Úsalo para compartir el portafolio sin proyectos de ejemplo.
   soloProyectosListos: true,
+
+  // Casos de estudio: true = se muestran también los casos con provisional: true.
+  // Cámbialo a false antes de compartir el link si aún no los completas
+  // (si no queda ningún caso listo, la sección se oculta sola del menú y del inicio).
+  mostrarCasosProvisionales: false,
+  casos: {
+    titulo: 'Detrás de cada *estrategia*.',
+    subtitulo: 'Una mirada a los desafíos, decisiones y resultados que dan forma a mi trabajo en marketing y comunicaciones.',
+    invitacionTitulo: 'Más allá de las *piezas*.',
+    invitacionTexto: 'Explora las estrategias, decisiones y resultados detrás de algunos de mis proyectos.',
+  },
 
   /* ---------- CONTACTO ---------- */
   contacto: {
@@ -51,16 +73,12 @@ export const sitio = {
   sobreMi: {
     titulo: 'Periodista de formación, *creativa* por oficio y *estratégica* por convicción.',
     parrafos: [
-      'Soy periodista y licenciada en Comunicación Social de la Universidad de los Andes, titulada con distinción máxima. Mi trabajo cruza marketing digital, comunicación corporativa, creación de contenido, producción audiovisual y coordinación de campañas creativas.',
-      'Pasé por agencias de comunicaciones como Perceptiva y hoy trabajo en marketing digital B2B en Movistar Empresas. Ahí aprendí que una buena idea necesita también planificación, criterio y un mensaje que se entienda a la primera.',
+      'Soy Michela Angelini, *periodista y licenciada en Comunicación Social* de la Universidad de los Andes, titulada con distinción máxima. Mi trabajo cruza marketing digital, comunicación corporativa, contenido audiovisual y campañas B2B.',
+      'Pasé por agencias de comunicación y hoy coordino la masificación de canales digitales en Movistar Empresas. Me gusta *transformar ideas en piezas y campañas* que se entienden a la primera y generan conexión.',
     ],
     // Ruta a tu foto (ej: 'img/michela.jpg' dentro de /public). Vacío = no se muestra foto.
     foto: '',
-    formacion: {
-      titulo: 'Periodismo y Licenciatura en Comunicación Social',
-      institucion: 'Universidad de los Andes',
-      distincion: 'Distinción máxima',
-    },
+    // La formación académica se edita en src/data/formacion.js
     ejes: [
       { titulo: 'Periodismo y comunicación', texto: 'Formación para investigar, ordenar ideas y contar historias con claridad.' },
       { titulo: 'Agencia y empresa', texto: 'Experiencia en agencia de comunicaciones y en marketing digital corporativo.' },
@@ -70,19 +88,31 @@ export const sitio = {
       { titulo: 'Redacción y copywriting', texto: 'Mensajes adaptados a cada canal, formato y audiencia.' },
     ],
     // Agrega o quita herramientas libremente.
-    herramientas: ['Canva', 'Photoshop', 'DaVinci Resolve', 'CapCut', 'Aivo', 'Herramientas de IA generativa', 'Microsoft Office'],
-    idiomas: ['Inglés — Upper Intermediate', 'Italiano — Intermedio'],
-    // Otros estudios (aparecen bajo la formación principal)
-    estudios: [
-      { titulo: 'Diplomado en Posicionamiento y Comunicación Integrada en Marketing', institucion: 'Pontificia Universidad Católica de Chile', periodo: '2026 · En curso' },
-      { titulo: 'Community Manager Estratégico', institucion: 'Academia Metrics', periodo: '2023' },
-      { titulo: 'Minor en Gestión de Servicios', institucion: 'Universidad de los Andes', periodo: '' },
+    // Herramientas y habilidades. icono: correo, documento, lapiz, imagen, pelicula, video,
+    // chat, destellos, cuadricula, megafono, grafico, capas, numeral
+    herramientas: [
+      { nombre: 'Canva', icono: 'capas' },
+      { nombre: 'Photoshop', icono: 'imagen' },
+      { nombre: 'DaVinci Resolve', icono: 'pelicula' },
+      { nombre: 'CapCut', icono: 'video' },
+      { nombre: 'IA generativa', icono: 'destellos' },
+      { nombre: 'Aivo', icono: 'chat' },
+      { nombre: 'Redacción y copywriting', icono: 'lapiz' },
+      { nombre: 'Coordinación de campañas', icono: 'megafono' },
+      { nombre: 'Microsoft Office', icono: 'cuadricula' },
+      { nombre: 'Seguimiento de KPIs', icono: 'grafico' },
     ],
+    idiomas: ['Inglés — Upper Intermediate', 'Italiano — Intermedio'],
   },
 
   /* ---------- FRASE DESTACADA (se ilumina al hacer scroll) ---------- */
-  frase:
-    'Una buena campaña empieza con una *idea*, se sostiene con *estrategia* y se recuerda por cómo hace *sentir* a las personas.',
+  // Página de proyectos
+  proyectosIntro:
+    'Una selección de proyectos de marketing digital, diseño, contenido audiovisual y dirección creativa, donde estrategia, creatividad y ejecución trabajan juntas.',
+  proyectosImagen: 'proyectos/wsp-agencia-portada.webp',
+
+  // Frase destacada (aparece junto a la lista de proyectos)
+  frase: 'Estrategia, contenido y ejecución, orientados a conectar marcas con personas de forma significativa.',
 
   /* ---------- EXPERIENCIA ----------
      "proyectos" enlaza a los slugs definidos en proyectos.js            */
@@ -167,8 +197,8 @@ export const sitio = {
 
   /* ---------- CIERRE ---------- */
   cierre: {
-    titulo: 'Hablemos.',
+    titulo: '¿Hablamos?',
     texto:
-      '¿Tienes un proyecto, un equipo o una marca que necesita comunicar mejor? Me encantaría conversar.',
+      'Estoy abierta a nuevas oportunidades, proyectos y desafíos de comunicación, marketing y contenido. *¡Conversemos!*',
   },
 }

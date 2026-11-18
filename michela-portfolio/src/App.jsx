@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence, MotionConfig, useReducedMotion } from 'motion/react'
 import { EASE, scrollToId } from './lib/util'
-import { proyectos } from './data/proyectos'
+import { proyectos } from './lib/datos'
 import { sitio } from './data/sitio'
 import { Nav, ScrollProgress, Cursor } from './components/Chrome'
 import Hero from './components/Hero'

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react'
 import { EASE, videoInfo } from '../lib/util'
-import { proyectos } from '../data/proyectos'
+import { proyectos } from '../lib/datos'
 import { SplitWords, Reveal, Boton, Magnetic } from './motion'
 import { ParallaxMedia } from './Sections'
 import { BadgeAutoria, BadgeProvisional } from './Proyectos'
@@ -79,14 +79,15 @@ function Lightbox({ imagenes, indice, setIndice }) {
 }
 
 /* ---------- Video (se carga solo al hacer clic: más rápido) ---------- */
-function Video({ url, titulo, tono }) {
+function Video({ url, titulo, tono, poster, formato }) {
   const [play, setPlay] = useState(false)
   const info = videoInfo(url)
   if (!info) {
     return <Media tono={tono} etiqueta="Video provisional" className="aspect-video rounded-[3px]" />
   }
   if (info.tipo === 'archivo') {
-    return <video src={info.src} controls preload="metadata" playsInline className="aspect-video w-full rounded-[3px] bg-tinta" title={titulo} />
+    const forma = formato === 'cuadrado' ? 'mx-auto aspect-square max-w-[640px]' : formato === 'vertical' ? 'mx-auto aspect-[9/16] max-w-[380px]' : 'aspect-video'
+    return <video src={info.src} poster={poster} controls preload="metadata" playsInline className={`block w-full rounded-[3px] bg-crema-2 object-contain ${forma}`} title={titulo} />
   }
   return (
     <div className="relative aspect-video overflow-hidden rounded-[3px] bg-tinta">
@@ -176,7 +177,7 @@ export default function ProyectoPagina({ slug, onOpen, onVolver }) {
         transition={{ delay: 1, duration: 1.2, ease: EASE }}
         className="mx-auto mt-14 w-full max-w-[1600px] px-5 md:px-10"
       >
-        <ParallaxMedia src={p.portada} alt={p.titulo} tono={p.tono} className="aspect-[16/10] w-full rounded-[3px] md:aspect-[16/8]" priority />
+        <ParallaxMedia src={p.portada} alt={p.titulo} tono={p.tono} ajuste={p.ajustePortada} fondo={p.fondoPortada} className="aspect-[16/10] w-full rounded-[3px] md:aspect-[16/8]" priority />
       </motion.div>
 
       <div className="mx-auto w-full max-w-[1600px] px-5 md:px-10">
@@ -186,6 +187,7 @@ export default function ProyectoPagina({ slug, onOpen, onVolver }) {
             <p className="text-[13px] uppercase tracking-[0.18em] text-gris">Autoría</p>
             <p className="mt-3 text-2xl leading-snug tracking-tight md:text-3xl">{p.detalleAutoria}</p>
             {p.creditos && <p className="mt-3 font-serif text-xl italic text-burdeo">{p.creditos}</p>}
+            {p.nota && <p className="mt-4 max-w-xl border-l border-burdeo/40 pl-3 text-[13px] leading-relaxed text-gris">{p.nota}</p>}
           </div>
           <div className="md:col-span-4 md:col-start-9">
             <p className="text-[13px] uppercase tracking-[0.18em] text-gris">Mi rol</p>
@@ -216,15 +218,20 @@ export default function ProyectoPagina({ slug, onOpen, onVolver }) {
               <h2 className="text-[13px] uppercase tracking-[0.18em] text-gris">Galería</h2>
               {reales.length > 0 && <p className="text-[13px] text-gris">Haz clic para ampliar</p>}
             </Reveal>
-            <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-12 md:gap-6">
+            {p.nota && <p className="mt-2 text-[13px] text-gris">{p.nota}</p>}
+            <div className="mt-8 grid grid-cols-2 items-start gap-4 md:grid-cols-12 md:gap-6">
               {p.imagenes.map((img, i) => {
-                const span = i % 3 === 0 ? 'col-span-2 md:col-span-12 aspect-[16/9]' : 'col-span-1 md:col-span-6 aspect-[4/5]'
+                const span = img.formato === 'banner'
+                  ? 'col-span-2 md:col-span-12 aspect-[39/10]'
+                  : img.formato === 'cuadrado'
+                  ? 'col-span-2 sm:col-span-1 md:col-span-6 aspect-square'
+                  : i % 3 === 0 ? 'col-span-2 md:col-span-12 aspect-[16/9]' : 'col-span-1 md:col-span-6 aspect-[4/5]'
                 const realIdx = reales.indexOf(img)
                 return (
                   <Reveal key={i} delay={(i % 2) * 0.08} className={span}>
                     {img.src ? (
                       <button onClick={() => setLb(realIdx)} data-cursor="Ampliar" className="group block h-full w-full overflow-hidden rounded-[3px]" aria-label={`Ampliar imagen: ${img.alt || p.titulo}`}>
-                        <Media src={img.src} alt={img.alt} className="h-full w-full" imgClassName="transition-transform duration-[1200ms] ease-[var(--ease-editorial)] group-hover:scale-105" />
+                        <Media src={img.src} alt={img.alt} ajuste={img.ajuste || 'contain'} fondo={img.fondo || p.fondoPortada} tono="#E9E2D7" className="h-full w-full" imgClassName="transition-transform duration-[1200ms] ease-[var(--ease-editorial)] group-hover:scale-105" />
                       </button>
                     ) : (
                       <Media tono={p.tono} className="h-full w-full rounded-[3px]" />
@@ -244,8 +251,8 @@ export default function ProyectoPagina({ slug, onOpen, onVolver }) {
             <div className="mt-8 grid gap-8">
               {videos.map((v, i) => (
                 <Reveal key={i}>
-                  <Video url={v.url} titulo={v.titulo} tono={p.tono} />
-                  {v.titulo && v.url && <p className="mt-3 text-sm text-gris">{v.titulo}</p>}
+                  <Video url={v.url} titulo={v.titulo} tono={p.tono} poster={v.poster} formato={v.formato} />
+                  {v.titulo && v.url && <p className={`mt-3 text-sm text-gris ${v.formato ? 'text-center' : ''}`}>{v.titulo}</p>}
                 </Reveal>
               ))}
             </div>

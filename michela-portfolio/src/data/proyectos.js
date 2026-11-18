@@ -17,14 +17,23 @@
                                      pero el diseño lo hizo otra persona.
    · detalleAutoria: explica en una frase qué hiciste exactamente.
    · creditos:      quién diseñó/produjo (obligatorio si es 'colaboracion').
+   · nota:          aviso de derechos (opcional). Ej: 'Pieza de [Marca], mostrada
+                    con fines de portafolio. Todos los derechos pertenecen a la marca.'
    · rol:           lista corta de tus tareas.
    · contexto, objetivo, participacion, proceso: textos del caso.
    · resultados:    lista de entregables o resultados VERIFICABLES.
    · portada:       imagen principal  → 'proyectos/mi-slug/portada.jpg'
    · imagenes:      [{ src: 'proyectos/mi-slug/01.jpg', alt: 'Descripción', pie: 'Texto opcional' }]
+                    Agrega formato: 'cuadrado' a piezas cuadradas (se muestran de a dos)
+                    o formato: 'banner' a banners horizontales (ancho completo).
    · videos:        [{ url: 'https://www.youtube.com/watch?v=XXXX', titulo: '...' }]
+                    Para un .mp4 propio puedes agregar poster: 'proyectos/imagen.webp'
+                    y formato: 'cuadrado' (o 'vertical') si no es horizontal.
                     Acepta YouTube, Vimeo o un .mp4 propio ('proyectos/mi-slug/video.mp4').
    · tono:          color de fondo de las imágenes provisionales (opcional).
+   · ajustePortada: 'contain' muestra la portada completa sin recortar
+                    (útil para piezas cuadradas o verticales); fondoPortada
+                    es el color que rellena los costados.
 
    Imágenes: guárdalas en public/proyectos/<slug>/ (formato .webp o .jpg,
    máx. ~2000 px de ancho y ~400 KB cada una).
@@ -42,50 +51,150 @@ const P = 'Texto provisional — '
 
 export const proyectos = [
   {
-    slug: 'campanas-whatsapp-email',
-    provisional: true,
-    titulo: 'Campañas de WhatsApp y email marketing',
+    slug: 'asistente-virtual-whatsapp',
+    provisional: false,
+    titulo: 'Masificación de canales digitales B2B por WhatsApp',
     cliente: 'Movistar Empresas',
     empresa: 'Movistar Empresas',
-    anio: '',
-    categorias: ['Marketing digital'],
-    resumen: 'Campañas B2B para canales digitales: del brief al mensaje final.',
-    autoria: 'colaboracion',
-    detalleAutoria: 'Conceptualización, brief creativo, redacción de mensajes y coordinación.',
-    creditos: 'Diseño gráfico: [nombre del equipo o agencia]',
-    rol: ['Conceptualización', 'Brief creativo', 'Copywriting', 'Coordinación'],
-    contexto: P + 'describe el escenario: qué necesitaba comunicar la marca, a qué clientes empresa iba dirigido y qué desafío existía.',
-    objetivo: P + 'explica en una o dos frases qué buscaba la campaña.',
-    participacion: P + 'detalla tu aporte concreto: concepto, brief, redacción, revisión, coordinación con diseño.',
-    proceso: P + 'cuenta cómo llegaste a la idea, cómo se trabajó con el equipo y qué decisiones tomaste.',
-    resultados: [P + 'agrega entregables (ej: número de piezas o mensajes) o resultados que puedas respaldar.'],
-    portada: '',
-    imagenes: [{ src: '', alt: '' }, { src: '', alt: '' }, { src: '', alt: '' }],
+    anio: '2026', // ← confirma el año
+    categorias: ['Marketing digital', 'Diseño y contenido gráfico'],
+    resumen: 'Campañas de WhatsApp para que clientes empresa adopten las funcionalidades de sus canales digitales.',
+    autoria: 'propio',
+    detalleAutoria: 'Diseño y elaboración de las piezas de la campaña.',
+    creditos: '',
+    nota: 'Piezas de Movistar Empresas, mostradas con fines de portafolio. Todos los derechos pertenecen a la marca.',
+    rol: ['Diseño gráfico', 'Elaboración de piezas', 'Campañas WhatsApp'],
+    contexto:
+      'Los canales digitales B2B permiten que los clientes empresa resuelvan sus gestiones por autoatención, pero muchas de sus funcionalidades aún no son conocidas ni usadas. El desafío: comunicarlas de forma simple, directa y en un canal que los clientes ya usan todos los días.',
+    objetivo:
+      'Masificar el uso de las funcionalidades de los canales digitales B2B, mostrando en cada campaña una gestión concreta que el cliente puede resolver por su cuenta.',
+    participacion:
+      'Diseñé y elaboré cada una de las piezas: a partir de la funcionalidad a comunicar, desarrollé la composición visual y el mensaje para que se entendiera de un vistazo en la pantalla del celular.',
+    proceso: '', // ← opcional: cómo trabajaste (herramientas, ideas, decisiones de diseño)
+    resultados: [
+      'Serie de piezas enviadas a clientes empresa a través de WhatsApp.',
+      'Cada pieza comunica una funcionalidad concreta: desde la gestión general de servicios hasta soluciones puntuales, como el reseteo de red o el bloqueo de llamadas SPAM 809.',
+    ],
+    portada: 'proyectos/asistente-virtual-whatsapp.webp',
+    ajustePortada: 'contain', // muestra la pieza completa, sin recortarla
+    fondoPortada: '#0A2E8C',
+    imagenes: [
+      { src: 'proyectos/asistente-virtual-whatsapp.webp', alt: 'Pieza: gestiona tus servicios desde WhatsApp', pie: 'Presentación del Asistente Virtual: gestiones disponibles desde WhatsApp.', formato: 'cuadrado' },
+      { src: 'proyectos/reseteo-red-whatsapp.webp', alt: 'Pieza: reseteo de red con el Asistente Virtual', pie: 'Funcionalidad puntual: reseteo de red ante intermitencia de la señal móvil.', formato: 'cuadrado' },
+      { src: 'proyectos/bloqueo-spam-809-whatsapp.webp', alt: 'Pieza: bloqueo de llamadas 809 desde el Asistente Virtual', pie: 'Funcionalidad puntual: bloqueo de llamadas SPAM 809 desde el menú del Asistente Virtual.', formato: 'cuadrado' },
+    ],
     videos: [],
     tono: '#E4D7CF',
   },
   {
-    slug: 'banners-sitio-web',
-    provisional: true,
-    titulo: 'Banners para sitios web',
+    slug: 'video-tutorial-sucursal-virtual',
+    provisional: false,
+    titulo: 'Video tutorial: cómo ingresar a la Sucursal Virtual Empresas',
     cliente: 'Movistar Empresas',
     empresa: 'Movistar Empresas',
-    anio: '',
+    anio: '2026', // ← confirma el año
+    categorias: ['Producción audiovisual', 'Marketing digital'],
+    resumen: 'De la pieza estática al video: un tutorial simple para que los clientes ingresen bien a la Sucursal Virtual.',
+    autoria: 'propio',
+    detalleAutoria: 'Idea, estrategia y realización completa del video, de principio a fin.',
+    creditos: '',
+    nota: 'Pieza de Movistar Empresas, mostrada con fines de portafolio. Todos los derechos pertenecen a la marca.',
+    rol: ['Estrategia', 'Idea', 'Guion', 'Edición de video'],
+    contexto:
+      'Los clientes empresa no estaban ingresando correctamente a la Sucursal Virtual. Las campañas estáticas podían decirles que entraran, pero no mostrarles cómo hacerlo.',
+    objetivo:
+      'Enseñar de forma simple y visual el paso a paso para ingresar a la Sucursal Virtual Empresas, y cambiar el estilo de las campañas para captar mejor la atención.',
+    participacion:
+      'La estrategia fue mía: propuse pasar de las piezas estáticas a un video tutorial corto que mostrara el recorrido real. Lo hice completo yo, desde la idea hasta el video final.',
+    proceso:
+      'Detecté el problema de ingreso → propuse cambiar el formato → definí los pasos clave (entrar al sitio, ir a "Mi Movistar Empresas", ingresar RUT y contraseña) → armé el recorrido con textos guía en cada paso, en formato cuadrado y de pocos segundos.',
+    resultados: [
+      'Video tutorial de 14 segundos que muestra el ingreso completo en tres pasos.',
+      'Nuevo formato audiovisual dentro de las campañas de masificación, más allá de las piezas estáticas.',
+    ],
+    portada: 'proyectos/video-tutorial-sve-poster.webp',
+    imagenes: [],
+    videos: [
+      { url: 'proyectos/video-tutorial-sve.mp4', titulo: 'Tutorial: ingreso a la Sucursal Virtual Empresas', poster: 'proyectos/video-tutorial-sve-poster.webp', formato: 'cuadrado' },
+    ],
+    tono: '#DCE6F2',
+  },
+  {
+    slug: 'banners-sitio-web',
+    provisional: false,
+    titulo: 'Banners para la Sucursal Virtual Empresas',
+    cliente: 'Movistar Empresas',
+    empresa: 'Movistar Empresas',
+    anio: '2026', // ← confirma el año
     categorias: ['Diseño y contenido gráfico', 'Marketing digital'],
-    resumen: 'Piezas para sitios web: concepto, mensaje y revisión de diseño.',
-    autoria: 'colaboracion',
-    detalleAutoria: 'Conceptualización de las piezas, redacción y revisión de diseños.',
-    creditos: 'Diseño gráfico: [nombre del equipo o agencia]',
-    rol: ['Conceptualización', 'Redacción', 'Revisión de diseño'],
-    contexto: P + 'qué se necesitaba destacar en el sitio y por qué.',
-    objetivo: P + 'qué debían lograr los banners.',
-    participacion: P + 'tu aporte: brief, mensajes, referencias visuales, revisiones.',
-    proceso: P + 'cómo se pasó del brief a las piezas finales.',
-    resultados: [P + 'entregables o resultados verificables.'],
-    portada: '',
-    imagenes: [{ src: '', alt: '' }, { src: '', alt: '' }],
+    resumen: 'Banners para el sitio privado de clientes empresa, cada uno enfocado en una funcionalidad digital.',
+    autoria: 'propio',
+    detalleAutoria: 'Diseño y elaboración de los banners.',
+    creditos: '',
+    nota: 'Piezas de Movistar Empresas, mostradas con fines de portafolio. Todos los derechos pertenecen a la marca.',
+    rol: ['Diseño gráfico', 'Banners web', 'Elaboración de piezas'],
+    contexto:
+      'La Sucursal Virtual Empresas es el sitio donde los clientes empresa gestionan sus servicios. Muchas funcionalidades nuevas o poco conocidas necesitaban visibilidad justo donde el cliente ya está navegando.',
+    objetivo:
+      'Dar a conocer funcionalidades concretas del sitio y de otros canales digitales, con un mensaje breve y una llamada a la acción clara en cada banner.',
+    participacion:
+      'Diseñé y elaboré cada banner: una funcionalidad por pieza, con jerarquía clara entre título, beneficio y llamada a la acción, adaptada al formato horizontal del sitio.',
+    proceso: '', // ← opcional: cómo trabajaste (herramientas, ideas, decisiones de diseño)
+    resultados: [
+      'Serie de banners publicados en el sitio privado de la Sucursal Virtual Empresas.',
+      'Cada banner destaca una funcionalidad: Asistente Virtual por WhatsApp, gestión de tickets técnicos, perfiles y accesos por usuario, y bloqueo de llamadas 809.',
+    ],
+    portada: 'proyectos/banners-portada.webp',
+    ajustePortada: 'contain',
+    fondoPortada: '#E9E2D7',
+    imagenes: [
+      { src: 'proyectos/banner-asistente-virtual.webp', alt: 'Banner: Asistente Virtual Empresas por WhatsApp', pie: 'Asistente Virtual Empresas: gestiones por WhatsApp, con código QR de acceso directo.', formato: 'banner' },
+      { src: 'proyectos/banner-tickets-tecnicos.webp', alt: 'Banner: gestiona tus tickets técnicos en línea', pie: 'Seguimiento de tickets técnicos de servicios fijos y privados en un solo lugar.', formato: 'banner' },
+      { src: 'proyectos/banner-perfiles-accesos.webp', alt: 'Banner: asigna perfiles y accesos para cada usuario', pie: 'Perfiles y accesos por usuario desde la Sucursal Virtual Empresas.', formato: 'banner' },
+      { src: 'proyectos/banner-bloqueo-809.webp', alt: 'Banner: bloquea llamadas 809 en tus líneas', pie: 'Bloqueo de llamadas 809 desde la Sucursal Virtual Empresas.', formato: 'banner' },
+    ],
     videos: [],
     tono: '#DCCFD3',
+  },
+  {
+    slug: 'campanas-whatsapp-agencia',
+    provisional: false,
+    titulo: 'Campañas de WhatsApp: idea, dirección y coordinación con agencia',
+    cliente: 'Movistar Empresas',
+    empresa: 'Movistar Empresas',
+    anio: '2026', // ← confirma el año (o pon un rango, ej: '2025 — 2026')
+    categorias: ['Marketing digital'],
+    resumen: 'Campañas de masificación por WhatsApp: yo propongo la idea y el diseño de referencia; la agencia produce la pieza final.',
+    autoria: 'colaboracion',
+    detalleAutoria: 'Idea y concepto de cada campaña, propuesta visual de referencia, brief, coordinación con la agencia y revisión de las piezas.',
+    creditos: 'Diseño final: agencia de marketing', // ← puedes agregar el nombre de la agencia
+    nota: 'Piezas de Movistar Empresas, mostradas con fines de portafolio. Todos los derechos pertenecen a la marca.',
+    rol: ['Idea y concepto', 'Dirección visual', 'Brief creativo', 'Coordinación con agencia', 'Revisión de diseño'],
+    contexto:
+      'Para masificar los canales digitales B2B, cada mes se comunican funcionalidades concretas a clientes empresa por WhatsApp: pagar facturas, bloquear una SIM, consultar líneas o gestionar servicios 100% online. Muchas de estas piezas se producen con la agencia de marketing.',
+    objetivo:
+      'Que cada campaña comunique una sola acción, fácil de entender en segundos y en la pantalla del celular, e invite al cliente a resolverla por su cuenta en la Sucursal Virtual, el Asistente Virtual o la App.',
+    participacion:
+      'Las ideas son mías: defino qué comunicar, el concepto y el mensaje, y armo una propuesta visual de referencia que la agencia toma como base. Luego elaboro el brief, coordino la producción y reviso las piezas hasta su versión final.',
+    proceso:
+      'Idea y mensaje → propuesta visual de referencia → brief a la agencia → diseño de la agencia → revisión y ajustes → envío por WhatsApp.',
+    resultados: [
+      'Serie de campañas enviadas a clientes empresa por WhatsApp.',
+      'Funcionalidades comunicadas: pago de facturas en la App, reactivación digital, facturación y pagos por WhatsApp, bloqueo de SIM, consulta de líneas móviles y campaña de pagos.',
+    ],
+    portada: 'proyectos/wsp-agencia-portada.webp',
+    ajustePortada: 'contain',
+    fondoPortada: '#E9E2D7',
+    imagenes: [
+      { src: 'proyectos/wsp-app-pago-facturas.webp', alt: 'Pieza: paga tus facturas desde la App Movistar Empresas', pie: 'Lanzamiento: pago de facturas desde la App Movistar Empresas.', formato: 'cuadrado' },
+      { src: 'proyectos/wsp-reactivacion-digital.webp', alt: 'Pieza: conéctate al mundo digital de Movistar Empresas', pie: 'Reactivación digital: gestión 100% online por Sucursal Virtual y Asistente Virtual.', formato: 'cuadrado' },
+      { src: 'proyectos/wsp-facturacion-pagos.webp', alt: 'Pieza: tus facturas y pagos, más fácil por WhatsApp', pie: 'Facturación y pagos por WhatsApp, explicado en dos pasos.', formato: 'cuadrado' },
+      { src: 'proyectos/wsp-bloqueo-sim.webp', alt: 'Pieza: bloqueo y desbloqueo de SIM Card', pie: 'Bloqueo y desbloqueo de SIM Card desde la Sucursal Virtual.', formato: 'cuadrado' },
+      { src: 'proyectos/wsp-consulta-lineas.webp', alt: 'Pieza: consulta la información de tus líneas móviles', pie: 'Consulta de líneas, consumo y deuda de equipo en la Sucursal Virtual.', formato: 'cuadrado' },
+      { src: 'proyectos/wsp-campana-pagos.webp', alt: 'Pieza: sigue disfrutando tus servicios sin interrupciones', pie: 'Campaña de pagos: servicios sin interrupciones pagando desde la Sucursal Virtual.', formato: 'cuadrado' },
+    ],
+    videos: [],
+    tono: '#E2D9CE',
   },
   {
     slug: 'guias-canales-digitales',

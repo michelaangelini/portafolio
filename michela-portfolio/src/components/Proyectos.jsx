@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence, LayoutGroup } from 'motion/react'
 import { EASE } from '../lib/util'
-import { proyectos, CATEGORIAS } from '../data/proyectos'
+import { proyectos, CATEGORIAS } from '../lib/datos'
 import { sitio } from '../data/sitio'
 import { Etiqueta, SplitWords, Reveal } from './motion'
 import Media from './Media'
@@ -47,6 +47,8 @@ function Tarjeta({ p, i, onOpen }) {
             src={p.portada}
             alt={p.titulo}
             tono={p.tono}
+            ajuste={p.ajustePortada}
+            fondo={p.fondoPortada}
             className={l.ratio}
             imgClassName="transition-transform duration-[1400ms] ease-[var(--ease-editorial)] group-hover:scale-[1.07]"
           />
@@ -59,6 +61,11 @@ function Tarjeta({ p, i, onOpen }) {
             <p className="mt-2 max-w-md text-lg leading-snug">{p.resumen}</p>
             <p className="mt-3 text-[13px] text-crema/70">{p.categorias.join(' · ')}</p>
           </div>
+          {p.videos?.some((v) => v.url) && (
+            <span className="absolute bottom-4 right-4 inline-flex items-center gap-2 rounded-full bg-tinta/85 px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.14em] text-crema backdrop-blur">
+              <span aria-hidden="true">▶</span> Video
+            </span>
+          )}
           <div className="absolute inset-x-4 top-4 flex flex-wrap items-start justify-between gap-2">
             <BadgeAutoria autoria={p.autoria} claro />
             {p.provisional && <BadgeProvisional />}

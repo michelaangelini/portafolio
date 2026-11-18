@@ -1,15 +1,15 @@
 /** Imagen con lazy-loading. Si no hay archivo, muestra un marcador provisional
  *  (nunca una pieza inventada). */
-export default function Media({ src, alt = '', tono = '#E6DED3', className = '', imgClassName = '', etiqueta = 'Imagen provisional', priority = false, style }) {
+export default function Media({ src, alt = '', tono = '#E6DED3', className = '', imgClassName = '', etiqueta = 'Imagen provisional', priority = false, style, ajuste = 'cover', fondo }) {
   if (src) {
     return (
-      <div className={`overflow-hidden ${className}`} style={style}>
+      <div className={`overflow-hidden ${className}`} style={{ backgroundColor: ajuste === 'contain' ? fondo || tono : undefined, ...style }}>
         <img
           src={src}
           alt={alt}
           loading={priority ? 'eager' : 'lazy'}
           decoding="async"
-          className={`h-full w-full object-cover ${imgClassName}`}
+          className={`h-full w-full ${ajuste === 'contain' ? 'object-contain' : 'object-cover'} ${imgClassName}`}
         />
       </div>
     )

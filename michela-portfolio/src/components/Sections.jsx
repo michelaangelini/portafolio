@@ -2,7 +2,7 @@ import { useRef } from 'react'
 import { motion, useScroll, useTransform, useReducedMotion } from 'motion/react'
 import { EASE, parseWords, plain } from '../lib/util'
 import { sitio } from '../data/sitio'
-import { proyectos } from '../data/proyectos'
+import { proyectos } from '../lib/datos'
 import { Reveal, SplitWords, Etiqueta, Boton, Magnetic } from './motion'
 import Media from './Media'
 
@@ -30,10 +30,11 @@ export function ParallaxMedia({ className = '', ...props }) {
   const ref = useRef(null)
   const reduce = useReducedMotion()
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] })
-  const y = useTransform(scrollYProgress, [0, 1], reduce ? ['0%', '0%'] : ['-7%', '7%'])
+  const quieto = reduce || props.ajuste === 'contain' // piezas completas: sin recorte
+  const y = useTransform(scrollYProgress, [0, 1], quieto ? ['0%', '0%'] : ['-7%', '7%'])
   return (
     <div ref={ref} className={`relative overflow-hidden ${className}`}>
-      <motion.div style={{ y, scale: reduce ? 1 : 1.16 }} className="h-full w-full">
+      <motion.div style={{ y, scale: quieto ? 1 : 1.16 }} className="h-full w-full">
         <Media {...props} className="h-full w-full" />
       </motion.div>
     </div>
@@ -47,15 +48,27 @@ export function SobreMi() {
     <section id="sobre-mi" className="py-28 md:py-44">
       <div className={`${contenedor} grid gap-14 md:grid-cols-12 md:gap-10`}>
         <div className="md:col-span-5">
-          <Reveal>
-            <ParallaxMedia src={s.foto} alt={`Retrato de ${sitio.nombre}`} etiqueta="Tu fotografía aquí" className="aspect-[4/5] w-full max-w-[520px]" tono="#E2D6CC" />
-          </Reveal>
-          <Reveal delay={0.1} className="mt-6 max-w-[520px] border-t border-tinta/15 pt-5">
+          {s.foto && (
+            <Reveal className="mb-6">
+              <ParallaxMedia src={s.foto} alt={`Retrato de ${sitio.nombre}`} className="aspect-[4/5] w-full max-w-[520px]" tono="#E2D6CC" />
+            </Reveal>
+          )}
+          <Reveal delay={0.1} className={`max-w-[520px] border-t border-tinta/15 pt-5 ${s.foto ? '' : 'md:sticky md:top-32'}`}>
             <p className="text-[13px] uppercase tracking-[0.18em] text-gris">Formación</p>
             <p className="mt-2 text-xl leading-tight tracking-tight">{s.formacion.titulo}</p>
             <p className="mt-1 text-gris">
               {s.formacion.institucion} · <span className="font-serif text-lg italic text-burdeo">{s.formacion.distincion}</span>
             </p>
+            {s.estudios?.length > 0 && (
+              <ul className="mt-5 space-y-3 border-t border-tinta/10 pt-4">
+                {s.estudios.map((e) => (
+                  <li key={e.titulo}>
+                    <p className="leading-snug tracking-tight">{e.titulo}</p>
+                    <p className="text-[14px] text-gris">{e.institucion}{e.periodo && ` · ${e.periodo}`}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
           </Reveal>
         </div>
 
@@ -93,6 +106,12 @@ export function SobreMi() {
                 </li>
               ))}
             </ul>
+            {s.idiomas?.length > 0 && (
+              <>
+                <p className="mt-8 text-[13px] uppercase tracking-[0.18em] text-gris">Idiomas</p>
+                <p className="mt-3 text-[15px]">{s.idiomas.join('  ·  ')}</p>
+              </>
+            )}
           </Reveal>
         </div>
       </div>
@@ -164,6 +183,7 @@ export function Experiencia({ onOpen }) {
                       {x.cargo && <span className="text-tinta">{x.cargo}</span>}
                       {x.periodo && <span className="font-serif text-lg italic">{x.periodo}</span>}
                     </Reveal>
+                    {x.contratacion && <Reveal delay={0.25}><p className="mt-2 text-[14px] text-gris">{x.contratacion}</p></Reveal>}
                   </div>
 
                   <div className="md:col-span-6 md:col-start-7">
@@ -176,6 +196,12 @@ export function Experiencia({ onOpen }) {
                         </Reveal>
                       ))}
                     </ul>
+                    {x.marcas && (
+                      <Reveal className="mt-6 text-[15px] text-gris">
+                        <span className="text-[13px] uppercase tracking-[0.18em]">Cuentas y marcas · </span>
+                        <span className="text-tinta">{x.marcas}</span>
+                      </Reveal>
+                    )}
                     {rel.length > 0 && (
                       <Reveal className="mt-10">
                         <p className="text-[13px] uppercase tracking-[0.18em] text-gris">Proyectos relacionados</p>

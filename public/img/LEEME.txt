@@ -1,0 +1,1 @@
+Guarda aquí tu foto (ej: michela.jpg) y escribe en sitio.js → sobreMi.foto: 'img/michela.jpg'

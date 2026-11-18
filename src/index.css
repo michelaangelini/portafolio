@@ -1,0 +1,74 @@
+@import "tailwindcss";
+
+@theme {
+  --color-crema: #F8F1EF;
+  --color-crema-2: #F0E4E2;
+  --color-rosa: #F2E2E1;
+  --color-tinta: #1D1517;
+  --color-gris: #6E6164;
+  --color-gris-2: #9A8D8F;
+  --color-linea: #E3D3D1;
+  --color-burdeo: #7A1631;
+  --color-burdeo-2: #9E2347;
+  --font-sans: "Source Serif 4 Variable", ui-serif, Georgia, serif;
+  --font-serif: "Playfair Display Variable", ui-serif, Georgia, serif;
+  --ease-editorial: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  body {
+    @apply bg-crema text-tinta font-sans antialiased;
+    font-optical-sizing: auto;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection { background: var(--color-burdeo); color: var(--color-crema); }
+  :focus-visible { outline: 2px solid var(--color-burdeo); outline-offset: 4px; border-radius: 2px; }
+  img { user-select: none; }
+}
+
+/* Grano de papel muy sutil (estático, sin costo de animación) */
+.grano::after {
+  content: "";
+  position: fixed; inset: 0; pointer-events: none; z-index: 60;
+  opacity: .035; mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Acento editorial: *palabra* en los textos */
+.acento { font-family: var(--font-serif); font-style: italic; font-weight: 400; color: var(--color-burdeo); letter-spacing: 0; }
+.bg-tinta .acento { color: #E5899F; }
+h1, h2, h3 { font-family: var(--font-serif); font-weight: 500; }
+.tarjeta-suave { background: rgba(255,255,255,.55); border: 1px solid rgba(122,22,49,.10); box-shadow: 0 14px 40px -28px rgba(60,20,30,.5); }
+
+/* Subrayado animado */
+.subrayado {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 1px; background-position: 100% 100%; background-repeat: no-repeat;
+  transition: background-size .5s var(--ease-editorial);
+  padding-bottom: 2px;
+}
+.subrayado:hover, .subrayado:focus-visible { background-size: 100% 1px; background-position: 0% 100%; }
+.subrayado-on { background-size: 100% 1px; }
+.subrayado-on:hover { background-size: 0% 1px; background-position: 100% 100%; }
+
+/* Cinta infinita */
+@keyframes cinta { to { transform: translateX(-50%); } }
+.cinta { animation: cinta 38s linear infinite; }
+.cinta:hover { animation-play-state: paused; }
+
+/* Imagen provisional */
+.placeholder-lineas {
+  background-image: repeating-linear-gradient(135deg, rgba(23,19,17,.06) 0 1px, transparent 1px 14px);
+}
+
+/* Cursor personalizado: oculta el nativo solo cuando está activo */
+.cursor-activo, .cursor-activo * { cursor: none !important; }
+
+.sin-scrollbar::-webkit-scrollbar { display: none; }
+.sin-scrollbar { scrollbar-width: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}

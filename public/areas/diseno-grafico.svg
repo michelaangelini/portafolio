@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <defs>
+    <radialGradient id="bg" cx="30%" cy="30%" r="95%"><stop offset="0" stop-color="#F7EAE8"/><stop offset="1" stop-color="#D9B7BA"/></radialGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#bg)"/>
+  <g transform="rotate(-8 200 150)">
+    <rect x="128" y="30" width="144" height="250" rx="24" fill="#231A1D"/>
+    <rect x="138" y="42" width="124" height="226" rx="16" fill="#FBF4F3"/>
+    <rect x="178" y="48" width="44" height="9" rx="4.5" fill="#231A1D"/>
+    <rect x="148" y="68" width="60" height="7" rx="3.5" fill="#D9B7BA"/>
+    <g>
+      <rect x="148" y="84" width="34" height="34" rx="5" fill="#7A1631"/>
+      <rect x="185" y="84" width="34" height="34" rx="5" fill="#E8C3C8"/>
+      <rect x="222" y="84" width="34" height="34" rx="5" fill="#C9A27E"/>
+      <rect x="148" y="121" width="34" height="34" rx="5" fill="#F0DADB"/>
+      <rect x="185" y="121" width="34" height="34" rx="5" fill="#9E2347"/>
+      <rect x="222" y="121" width="34" height="34" rx="5" fill="#E8C3C8"/>
+      <rect x="148" y="158" width="34" height="34" rx="5" fill="#D48C9C"/>
+      <rect x="185" y="158" width="34" height="34" rx="5" fill="#F3E3D3"/>
+      <rect x="222" y="158" width="34" height="34" rx="5" fill="#7A1631"/>
+      <circle cx="165" cy="101" r="7" fill="#F3E3D3"/>
+      <path d="M190 112 l8 -10 6 7 4 -4 7 7 z" fill="#7A1631"/>
+      <circle cx="239" cy="175" r="8" fill="#F3E3D3"/>
+    </g>
+    <rect x="148" y="204" width="108" height="8" rx="4" fill="#EBD6D7"/>
+    <rect x="148" y="218" width="76" height="8" rx="4" fill="#EBD6D7"/>
+  </g>
+  <g transform="translate(290 150)">
+    <rect width="80" height="22" rx="11" fill="#fff" opacity=".9"/>
+    <circle cx="14" cy="11" r="7" fill="#7A1631"/><circle cx="32" cy="11" r="7" fill="#D48C9C"/>
+    <circle cx="50" cy="11" r="7" fill="#C9A27E"/><circle cx="68" cy="11" r="7" fill="#F0DADB"/>
+  </g>
+  <g transform="translate(40 190) rotate(-35)">
+    <rect width="90" height="10" rx="5" fill="#2A2024"/>
+    <path d="M90 0 l18 5 -18 5 z" fill="#C9A27E"/>
+  </g>
+</svg>

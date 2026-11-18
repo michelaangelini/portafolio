@@ -1,0 +1,2 @@
+Guarda aquí las imágenes de tus proyectos (.webp o .jpg, máx. ~2000 px y ~400 KB).
+Ejemplo de ruta en proyectos.js: proyectos/whatsapp-portada.jpg
